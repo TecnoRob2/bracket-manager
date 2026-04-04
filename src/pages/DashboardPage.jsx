@@ -7,7 +7,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const cerrarSesion = useStore((state) => state.cerrarSesion);
 
-  const [torneos, setTorneos] = useState([
+  const [torneos] = useState([
     { id: 1, nombre: 'Trifulca', participantes: 260, categoria: 'singles', fecha: '2026-08-15' },
     { id: 2, nombre: 'Sherry Showdown', participantes: 60, categoria: 'singles', fecha: '2026-07-20' }
   ]);

@@ -70,7 +70,7 @@ export default function LoginPage() {
       // 4. Vamos al Dashboard
       navigate('/dashboard');
 
-    } catch (err) {
+    } catch {
       setError('Token no válido. Por favor, revísalo e inténtalo de nuevo.');
     } finally {
       setCargando(false);
