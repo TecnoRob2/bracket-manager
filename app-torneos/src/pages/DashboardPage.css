@@ -91,25 +91,29 @@
 
 .bp-card-info {
   display: flex;
-  align-items: center;
-  gap: 20px;
+  align-items: center; /* Centra verticalmente ambos bloques */
+  gap: 30px; /* Separación horizontal entre el nombre y los detalles */
   flex: 1;
 }
 
 .bp-card-info h2 {
-  font-size: 1.1rem;
+  font-size: 1.5rem; /* Letra más grande, como en la imagen */
   margin: 0;
-  font-weight: normal;
-  min-width: 80px;
+  font-weight: 500; /* Grosor medio */
+  min-width: 100px; /* Asegura que el nombre siempre tenga un espacio mínimo */
+  color: #000; /* Asegura que no se vuelva blanco/transparente */
 }
 
 .bp-card-details {
-  font-size: 0.75rem;
-  color: #333;
+  font-size: 1rem; /* Aumentamos un poco el tamaño de los detalles también */
+  color: #111;
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* Separación entre el número y la categoría */
 }
 
 .bp-card-details p {
-  margin: 2px 0;
+  margin: 0;
 }
 
 /* --- BOTONES DE LA TARJETA --- */

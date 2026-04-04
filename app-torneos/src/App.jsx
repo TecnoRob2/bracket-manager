@@ -1,26 +1,32 @@
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useStore } from './store/useStore';
-import BracketPage from './pages/BracketPage';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage'; // Antes era BracketPage
+import BracketViewPage from './pages/BracketViewPage'; // Nueva página
+import BorradoresPage from './pages/BorradoresPage'; // Nueva página
 import ReglasPage from './pages/ReglasPage';
-import LoginPage from './pages/loginpage';
 
 export default function App() {
-  // Leemos el token de la memoria
   const apiToken = useStore((state) => state.apiToken);
 
   return (
-    <HashRouter>
+    <BrowserRouter>
       <main>
         <Routes>
-          {/* Si hay token, mostramos BracketPage. Si no, redirigimos a /login */}
-          <Route path="/" element={apiToken ? <BracketPage /> : <Navigate to="/login" />} />
-          <Route path="/reglas" element={apiToken ? <ReglasPage /> : <Navigate to="/login" />} />
+          {/* 1. Cambiar /login a / */}
+          <Route path="/" element={!apiToken ? <LoginPage /> : <Navigate to="/dashboard" />} />
           
-          {/* Si NO hay token, mostramos el login. Si ya lo hay, lo enviamos al menú principal */}
-          <Route path="/login" element={!apiToken ? <LoginPage /> : <Navigate to="/" />} />
+          {/* 2. Cambiar / a /dashboard (Aquí va el mockup de torneos) */}
+          <Route path="/dashboard" element={apiToken ? <DashboardPage /> : <Navigate to="/" />} />
+          
+          {/* 3. Rutas dinámicas para el torneo específico (:id es el identificador) */}
+          <Route path="/torneo/:id/bracket" element={apiToken ? <BracketViewPage /> : <Navigate to="/" />} />
+          <Route path="/torneo/:id/borradores" element={apiToken ? <BorradoresPage /> : <Navigate to="/" />} />
+          
+          {/* Ruta de reglas (clasheos) mantenida */}
+          <Route path="/clasheos" element={apiToken ? <ReglasPage /> : <Navigate to="/" />} />
         </Routes>
       </main>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
-

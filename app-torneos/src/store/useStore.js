@@ -4,12 +4,14 @@ import { persist } from 'zustand/middleware';
 export const useStore = create(
   persist(
     (set) => ({
-      apiToken: null, // Al principio no hay token
+      apiToken: null,
+      torneosUsuario: [], // <-- Nuevo array para guardar los torneos reales
       setApiToken: (token) => set({ apiToken: token }),
-      cerrarSesion: () => set({ apiToken: null }),
+      setTorneosUsuario: (torneos) => set({ torneosUsuario: torneos }), // <-- Nueva función
+      cerrarSesion: () => set({ apiToken: null, torneosUsuario: [] }), // Limpia todo al salir
     }),
     {
-      name: 'torneos-storage', // Nombre del archivo invisible en el LocalStorage
+      name: 'torneos-storage',
     }
   )
 );
