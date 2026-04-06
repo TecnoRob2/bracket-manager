@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../store/useStore'; // <-- 1. Importa el store
+import { userStore } from '../store/userStore'; // <-- 1. Importa el store
 import './ReglasPage.css';
 
 export default function ReglasPage() {
   const navigate = useNavigate();
-  const cerrarSesion = useStore((state) => state.cerrarSesion); // <-- 2. Extrae la función
+  const cerrarSesion = userStore((state) => state.cerrarSesion); // <-- 2. Extrae la función
   // Datos temporales simulando la lista de tu imagen
   const [clasheos] = useState([
     { id: 1, jugador1: 'Starchild', jugador2: 'Xiorad', motivo: 'región', relevancia: 3 },

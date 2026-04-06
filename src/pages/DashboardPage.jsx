@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../store/useStore';
+import { userStore } from '../store/userStore';
 import './DashboardPage.css'; // Acuérdate de renombrar este archivo también
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const cerrarSesion = useStore((state) => state.cerrarSesion);
+  const cerrarSesion = userStore((state) => state.cerrarSesion);
+
+        console.log('Usuario guardado en store:', userStore.getState().user);
+      console.log('Torneos guardados en store:', userStore.getState().torneosUsuario);
 
   const [torneos] = useState([
     { id: 1, nombre: 'Trifulca', participantes: 260, categoria: 'singles', fecha: '2026-08-15' },

@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../store/useStore';
+import { userStore } from '../store/userStore';
 import './LoginPage.css';
+import { userService } from '../services/userService';
+import { parseUser, parseTournaments } from '../utils/parser';
 
 export default function LoginPage() {
   const [inputToken, setInputToken] = useState('');
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   
-  const setApiToken = useStore((state) => state.setApiToken);
-  const setTorneosUsuario = useStore((state) => state.setTorneosUsuario); // <-- Lo importamos
+  const setApiToken = userStore((state) => state.setApiToken);
+  const setTorneosUsuario = userStore((state) => state.setTorneosUsuario);
+  const setUser = userStore((state) => state.setUser);
   const navigate = useNavigate();
 
   const validarToken = async (e) => {
@@ -19,62 +22,23 @@ export default function LoginPage() {
     setCargando(true);
     setError('');
 
-    // Consulta GraphQL combinada: pide el usuario y sus torneos pendientes
-    const queryGraphQL = `
-      query GetUserAndTournaments {
-        currentUser {
-          id
-          name
-          tournaments(query: {
-            perPage: 50,
-            page: 1,
-            filter: { 
-              upcoming: true 
-            }
-          }) {
-            nodes {
-              id
-              name
-              numAttendees
-            }
-          }
-        }
+    userService.getUserAndTournaments(inputToken).then((data) => {
+      console.log('Respuesta de getUserAndTournaments:', data);
+      if (data.error) {
+        setError(data.error);
+        setCargando(false);
+        return;
       }
-    `;
-
-    try {
-      const response = await fetch('https://api.start.gg/gql/alpha', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${inputToken}`,
-        },
-        body: JSON.stringify({ query: queryGraphQL }),
-      });
-
-      const data = await response.json();
-
-      if (data.errors || !response.ok || !data.data.currentUser) {
-        throw new Error('El token es inválido o no tiene permisos.');
-      }
-
-      // 1. Extraemos los torneos de la respuesta
-      const listaTorneos = data.data.currentUser.tournaments.nodes;
-      
-      // 2. Guardamos la lista en la memoria de la aplicación (Zustand)
-      setTorneosUsuario(listaTorneos);
-      
-      // 3. Guardamos el token
-      setApiToken(inputToken);
-      
-      // 4. Vamos al Dashboard
-      navigate('/dashboard');
-
-    } catch {
-      setError('Token no válido. Por favor, revísalo e inténtalo de nuevo.');
-    } finally {
       setCargando(false);
-    }
+      setApiToken(inputToken);
+      setUser(parseUser(data));
+      setTorneosUsuario(parseTournaments(data));
+      console.log('Usuario y torneos guardados en el store');
+      console.log("Torneos del usuario:", parseTournaments(data));
+      console.log("Usuario guardado:", parseUser(data));
+
+      navigate('/dashboard');
+    })
   };
 
   return (
