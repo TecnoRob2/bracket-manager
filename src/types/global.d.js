@@ -65,3 +65,10 @@
  * @property {number} numAttendees
  * @property {string} startAt
  */
+
+/**
+ * @typedef {Object} PlayerSeed
+ * @property {number} seedId
+ * @property {string} seedNum
+ * @property {string} gamerTag
+ */
