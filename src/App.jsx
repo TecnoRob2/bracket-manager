@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/loginpage';
+import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage'; // Antes era BracketPage
 import BracketViewPage from './pages/BracketViewPage'; // Nueva página
 import BorradoresPage from './pages/BorradoresPage'; // Nueva página
@@ -13,7 +13,7 @@ export default function App() {
       <main>
         <Routes>
           {/* 1. Cambiar /login a / */}
-          <Route path="/" element={<LoginPage />} />
+          <Route path="/" element={<AuthPage />} />
           
           {/* 2. Cambiar / a /dashboard (Aquí va el mockup de torneos) */}
           <Route path="/dashboard" element={<DashboardPage />} />

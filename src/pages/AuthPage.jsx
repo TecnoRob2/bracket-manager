@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userStore } from '../store/userStore';
-import './LoginPage.css';
+import './AuthPage.css';
 import { userService } from '../services/userService';
 import { parseUser, parseTournaments } from '../utils/parser';
 
-export default function LoginPage() {
+export default function AuthPage() {
   const [inputToken, setInputToken] = useState('');
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   
   const setApiToken = userStore((state) => state.setApiToken);
-  const setTorneosUsuario = userStore((state) => state.setTorneosUsuario);
+  const setTournaments = userStore((state) => state.setTournaments);
   const setUser = userStore((state) => state.setUser);
   const navigate = useNavigate();
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
       setCargando(false);
       setApiToken(inputToken);
       setUser(parseUser(data));
-      setTorneosUsuario(parseTournaments(data));
+      setTournaments(parseTournaments(data));
       console.log('Usuario y torneos guardados en el store');
       console.log("Torneos del usuario:", parseTournaments(data));
       console.log("Usuario guardado:", parseUser(data));

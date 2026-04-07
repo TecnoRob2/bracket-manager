@@ -7,13 +7,9 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const cerrarSesion = userStore((state) => state.cerrarSesion);
 
-        console.log('Usuario guardado en store:', userStore.getState().user);
-      console.log('Torneos guardados en store:', userStore.getState().torneosUsuario);
+  const tournaments = userStore((state) => state.tournaments); // Extraemos los torneos del store
 
-  const [torneos] = useState([
-    { id: 1, nombre: 'Trifulca', participantes: 260, categoria: 'singles', fecha: '2026-08-15' },
-    { id: 2, nombre: 'Sherry Showdown', participantes: 60, categoria: 'singles', fecha: '2026-07-20' }
-  ]);
+  const [torneos] = useState(/** @type {EventTournament[]} */ (tournaments));
 
   return (
     <div className="bracket-page">
@@ -38,17 +34,12 @@ export default function DashboardPage() {
             onClick={() => navigate(`/torneo/${torneo.id}/bracket`)}
           >
             <div className="bp-card-info">
-              <h2>{torneo.nombre}</h2>
+              <h2>{torneo.tournamentName}</h2>
               <div className="bp-card-details">
-                <p>Nº Participantes: {torneo.participantes}</p>
-                <p>Categoría: {torneo.categoria}</p>
-                <p>Fecha: {new Date(torneo.fecha).toLocaleDateString()}</p>
+                <p>Nº Participantes: {torneo.numAttendees}</p>
+                <p>Evento: {torneo.name}</p>
+                <p>Fecha: {torneo.startAt}</p>
               </div>
-            </div>
-            
-            <div className="bp-card-actions">
-              <button className="btn-icon" aria-label="Duplicar" onClick={(e) => e.stopPropagation()}>📄</button>
-              <button className="btn-icon" aria-label="Borrar" onClick={(e) => e.stopPropagation()}>🗑️</button>
             </div>
           </div>
         ))}
@@ -68,7 +59,7 @@ export default function DashboardPage() {
   const cerrarSesion = useStore((state) => state.cerrarSesion);
   
   // Extraemos la lista de torneos REALES de la memoria
-  const torneos = useStore((state) => state.torneosUsuario);
+  const torneos = useStore((state) => state.tournaments);
 
   return (
     <div className="bracket-page">
