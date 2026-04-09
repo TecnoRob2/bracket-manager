@@ -6,9 +6,10 @@ import SortableItem from "./SortableItem";
  * @param {Object} props
  * @param {PlayerSeed[]} props.seeds
  * @param {function} props.setSeeds
+ * @param {(updatedSeeds: PlayerSeed[]) => void} [props.onSeedsReordered]
  * @returns 
  */
-export default function DraggableSeeding({ seeds, setSeeds }) {
+export default function DraggableSeeding({ seeds, setSeeds, onSeedsReordered }) {
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
@@ -20,10 +21,11 @@ export default function DraggableSeeding({ seeds, setSeeds }) {
     const newOrder = arrayMove(seeds, oldIndex, newIndex)
       .map((item, index) => ({
         ...item,
-        seedNumber: index + 1,
+        seedNum: index + 1,
       }));
     
     setSeeds(newOrder);
+    onSeedsReordered?.(newOrder);
   };
 
   return (
@@ -33,7 +35,7 @@ export default function DraggableSeeding({ seeds, setSeeds }) {
         strategy={verticalListSortingStrategy}
       >
         {seeds.map((seed) => (
-          <SortableItem key={seed.seedId} id={seed.seedId} name={seed.name} seedNumber={seed.seedNumber} />
+          <SortableItem key={seed.seedId} id={seed.seedId} name={seed.gamerTag} seedNum={seed.seedNum} />
         ))}
       </SortableContext>
     </DndContext>

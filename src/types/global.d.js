@@ -2,6 +2,7 @@
 
 /**
  * @typedef {Object} PlayerDto
+ * @property {number} id
  * @property {string} gamerTag
  */
 
@@ -53,6 +54,26 @@
  * @property {CurrentUserDto} currentUser
  */
 
+/**
+ * @typedef {Object} SeedDto
+ * @property {number} id
+ * @property {string} seedNum
+ * @property {PlayerDto[]} players
+ */
+
+/**
+ * @typedef {Object} SeedsDto
+ * @property {SeedDto[]} nodes
+ */
+
+/**
+ * @typedef {Object} PhaseApiResponse
+ * @property {number} id
+ * @property {string} bracketType
+ * @property {number} numSeeds
+ * @property {SeedsDto} seeds
+ */
+
 // Our App Types
 
 /**
@@ -75,4 +96,12 @@
  * @property {number} seedId
  * @property {string} seedNum
  * @property {string} gamerTag
+ */
+
+/**
+ * @typedef {Object} Phase
+ * @property {number} id
+ * @property {string} name
+ * @property {string} bracketType
+ * @property {PlayerSeed[]} seeds
  */

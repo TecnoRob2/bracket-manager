@@ -60,3 +60,25 @@ export function parseTournaments(fetchData) {
 
     return tournamentList;
 }
+
+/**
+ * 
+ * @param {Object} fetchData
+ * @param {PhaseApiResponse} fetchData.phase
+ * @param {number} phaseId
+ * @return {Phase}
+ */
+export function parsePhasesSeeding(fetchData, phaseId) {
+    return {
+        id: phaseId,
+        numSeeds: fetchData.phase.numSeeds,
+        bracketType: fetchData.phase.bracketType,
+        seeds: [...fetchData.phase.seeds.nodes]
+        .sort((a, b) => Number(a.seedNum) - Number(b.seedNum))
+        .map(seed => ({
+            seedId: seed.id,
+            seedNum: seed.seedNum,
+            gamerTag: seed.players[0]?.gamerTag
+        }))
+    }
+}

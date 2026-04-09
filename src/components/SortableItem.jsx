@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export default function SortableItem({id, seed}){
+export default function SortableItem({id, name, seedNum}) {
     const {
         attributtes,
         listeners,
@@ -22,7 +22,7 @@ export default function SortableItem({id, seed}){
 
     return (
         <div ref={setNodeRef} style={style} {...attributtes} {...listeners}>
-            {seed.seedNumber}. {seed.name}
+            {seedNum}. {name}
         </div>
     );
 }

@@ -36,5 +36,27 @@ export const apiQueries = {
                 }
             }
         }
-        `
-};
+        `,
+    getPhaseSeeding:
+    `
+        query GetPhaseSeeding($phaseId: ID!) {
+            phase(id: $phaseId) {
+                bracketType
+                numSeeds
+                seeds(query: {
+                    perPage: 64
+                    page: 1
+                }) { 
+                    nodes {
+                        id
+                        seedNum
+                        players {
+                            id
+                            gamerTag
+                    }
+                }
+            }
+        }
+    }
+    `,
+}
