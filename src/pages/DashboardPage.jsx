@@ -19,9 +19,17 @@ export default function DashboardPage() {
           <h1>Gestión de torneos</h1>
         </div>
         <div className="bp-header-buttons">
-          <button className="btn-cambiar-token" onClick={() => cerrarSesion()}>Cambiar token</button>
+          <button 
+            className="btn-cambiar-token" 
+            onClick={() => {
+              cerrarSesion(); // 1. Borra el token de la memoria
+              navigate('/');  // 2. Fuerza al navegador a ir a la pantalla de Login
+            }}
+          >
+            Cerrar sesión
+          </button>
           <button className="btn-clasheos" onClick={() => navigate('/clasheos')}>Clasheos</button>
-          <button className="btn-crear">Crear torneo</button>
+          {/* <button className="btn-crear">Crear torneo</button> */}
         </div>
       </header>
 
