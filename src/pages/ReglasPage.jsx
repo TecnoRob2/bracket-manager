@@ -22,10 +22,16 @@ export default function ReglasPage() {
           <h1>Gestión de clasheo</h1>
         </div>
         <div className="rp-header-buttons">
-          <button className="btn-cambiar-token" onClick={() => cerrarSesion()}>
-            Cambiar token
+          <button 
+            className="btn-cambiar-token" 
+            onClick={() => {
+              cerrarSesion(); // 1. Borra el token de la memoria
+              navigate('/');  // 2. Fuerza al navegador a ir a la pantalla de Login
+            }}
+          >
+            Cerrar sesión
           </button>
-          <button className="btn-torneos" onClick={() => navigate('/')}>
+          <button className="btn-torneos" onClick={() => navigate('/Dashboard')}>
             Torneos
           </button>
           <button className="btn-incluir">Incluir clasheo</button>
