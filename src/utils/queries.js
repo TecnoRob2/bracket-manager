@@ -59,4 +59,13 @@ export const apiQueries = {
         }
     }
     `,
+
+    updatePhaseSeeding:
+    `
+        mutation UpdatePhaseSeeding ($phaseId: ID!, $seedMapping: [UpdatePhaseSeedInfo]!) {
+            updatePhaseSeeding (phaseId: $phaseId, seedMapping: $seedMapping) {
+                id
+            }
+        }
+    `
 }

@@ -1,9 +1,9 @@
 .bracket-view-page {
   padding: 1.5rem;
-  max-width: 1200px; /* Al ser el bracket, le damos más ancho que al móvil */
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
+
 
 /* Barra superior para aislar el botón de volver a la izquierda */
 .bv-top-bar {

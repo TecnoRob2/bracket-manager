@@ -82,3 +82,15 @@ export function parsePhasesSeeding(fetchData, phaseId) {
         }))
     }
 }
+
+/**
+ * 
+ * @param {PlayerSeed[]} seeding 
+ * @returns {{ seedId: number|string, seedNum: number|string }[]}
+ */
+export function parsePhaseSeedingDto(seeding) {
+    return seeding.map(seed => ({
+        seedId: seed.seedId,
+        seedNum: seed.seedNum
+    }));
+}
