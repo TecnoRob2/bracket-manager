@@ -18,14 +18,17 @@
  */
 
 /**
- * @typedef {Object} PhaseDto
- */
-
-/**
  * @typedef {Object} EventDto
  * @property {number} id
  * @property {string} name
  * @property {PhaseDto[]} phases
+ */
+
+/**
+ * @typedef {Object} PhaseDto
+ * @property {number} id
+ * @property {string} name
+ * @property {string} bracketType
  */
 
 /**
@@ -43,6 +46,7 @@
  * @typedef {Object} TournamentsDto
  * @property {TournamentDto[]} nodes
  */
+
 
 /**
  * @typedef {Object} UserApiResponse

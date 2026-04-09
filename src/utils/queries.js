@@ -23,7 +23,11 @@ export const apiQueries = {
                         events(filter: { videogameId: 1386 }) {
                             id
                             name
-                            
+                            phases {
+                                id
+                                name
+                                bracketType
+                            }      
                         }
                         admins {
                             id
@@ -32,5 +36,5 @@ export const apiQueries = {
                 }
             }
         }
-    `
+        `
 };

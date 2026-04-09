@@ -48,6 +48,11 @@ export function parseTournaments(fetchData) {
                     tournamentName: tournament.name,
                     numAttendees: tournament.numAttendees,
                     startAt: formatUnixDate(tournament.startAt),
+                    phases: event.phases.map(phase => ({
+                        id: phase.id,
+                        name: phase.name,
+                        bracketType: phase.bracketType
+                    }))
                 });
             });
         }
