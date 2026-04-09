@@ -66,6 +66,13 @@
   background-color: #d5d5d5;
 }
 
+.btn-secundario:disabled {
+  background-color: #f0f0f0;
+  color: #999;
+  border-color: #ddd;
+  cursor: not-allowed;
+}
+
 .btn-exportar {
   background-color: #2e8b57; /* Un verde que destaque para la acción final */
   color: white;

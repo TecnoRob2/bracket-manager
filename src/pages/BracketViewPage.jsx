@@ -13,8 +13,11 @@ export default function BracketViewPage() {
     navigate('/login');
   }
   const apiToken = userStore.getState().apiToken;
+
   const [seeds, setSeeds] = useState([]);
   const [phase, setPhase] = useState(null);
+  const [saved, setSaved] = useState(false);
+
   const tournament = /** @type {EventTournament | null} */ (tournamentStore((state) => state.tournament));
   const setPhases = tournamentStore((state) => state.setPhases);
 
@@ -26,11 +29,21 @@ export default function BracketViewPage() {
     };
     setPhases([updatedPhase]); // Actualiza la fase completa en el store
     setPhase(updatedPhase);
+    setSaved(false);
 
     console.log('Fase actualizada en el store después de reordenar seeds:', tournamentStore.getState().phases);
   };
 
+  const handleSeedSave = () => {
+    setSaved(true);
+    console.log('Seeds guardadas localmente:', seeds);
+  }
+
   const handleSeedPublish = async () => {
+    if (!phase) {
+      return;
+    }
+
     const seedMapping = parsePhaseSeedingDto(phase.seeds);
     console.log('Enviando el siguiente seedMapping a la API:', seedMapping);
     const response = await userService.updatePhaseSeeding(apiToken, phase.id, seedMapping);
@@ -88,7 +101,8 @@ export default function BracketViewPage() {
           {/* Nuevos botones sin funcionalidad por ahora */}
           <button 
             className="btn-secundario" 
-            onClick={() => console.log('Guardando borrador localmente...')}
+            onClick={handleSeedSave}
+            disabled={saved}
           >
             Guardar borrador
           </button>
@@ -96,6 +110,7 @@ export default function BracketViewPage() {
           <button 
             className="btn-exportar" 
             onClick={handleSeedPublish}
+            disabled={!saved}
           >
             Subir 
           </button>
