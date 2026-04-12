@@ -22,9 +22,10 @@
 }
 
 .rp-title-group h1 {
-  font-size: 1.25rem;
+  font-size: 1.20rem;
   margin: 0;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .rp-icon-ban {
@@ -83,7 +84,7 @@
   display: flex;
   justify-content: space-between;
   background-color: #f9f9f9;
-  border: 1px solid #ff4d4d; /* Borde rojo */
+  border: 1.5px solid #ff4d4d;
   border-radius: 12px;
   padding: 15px 20px;
   align-items: center;
@@ -94,6 +95,7 @@
   align-items: center;
   gap: 30px;
   flex: 1;
+  color: black;
 }
 
 .rp-players {

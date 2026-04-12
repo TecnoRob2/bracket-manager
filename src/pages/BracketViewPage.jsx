@@ -1,130 +1,153 @@
-import './BracketViewPage.css';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { tournamentStore } from '../store/tournamentStore';
-import { useEffect, useState } from 'react';
 import { userStore } from '../store/userStore';
+import { tournamentStore } from '../store/tournamentStore';
 import { userService } from '../services/userService';
-import DraggableSeeding from '../components/DraggableSeeding';
 import { parsePhaseSeedingDto } from '../utils/parser';
+import DraggableSeeding from '../components/DraggableSeeding';
+
+// Nuevos iconos
+import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
+
+import './BracketViewPage.css';
 
 export default function BracketViewPage() {
   const navigate = useNavigate();
-  if(!tournamentStore.getState().tournament || !userStore.getState().apiToken) {
-    navigate('/login');
-  }
-  const apiToken = userStore.getState().apiToken;
 
+  // Control de Tema
+  const tema = userStore((state) => state.tema);
+  const toggleTema = userStore((state) => state.toggleTema);
+
+  // Estados originales del compañero
+  const apiToken = userStore.getState().apiToken;
   const [seeds, setSeeds] = useState([]);
   const [phase, setPhase] = useState(null);
   const [saved, setSaved] = useState(false);
-
-  const tournament = /** @type {EventTournament | null} */ (tournamentStore((state) => state.tournament));
+  const tournament = tournamentStore((state) => state.tournament);
   const setPhases = tournamentStore((state) => state.setPhases);
 
-  const handleSeedsReordered = (updatedSeeds) => {
-    console.log('Nuevo orden de seeds para subir:', updatedSeeds);
-    const updatedPhase = {
-      ...phase,
-      seeds: updatedSeeds,
+  // Estados nuevos de la UI (Modales)
+  const [mostrarModalExportar, setMostrarModalExportar] = useState(false);
+  const [mostrarNotificacion, setMostrarNotificacion] = useState(false);
+
+  // Efecto original para cargar datos
+  useEffect(() => {
+    if (!tournament || !apiToken) {
+      navigate('/');
+      return;
+    }
+    const phaseId = tournament?.phases?.[0]?.id;
+    if (!phaseId) return;
+
+    const loadPhaseSeeding = async () => {
+      const data = await userService.getPhaseSeeding(apiToken, phaseId);
+      if (!data || data.error || !data.phase) return;
+      setSeeds(data.phase.seeds);
+      setPhase(data.phase);
     };
-    setPhases([updatedPhase]); // Actualiza la fase completa en el store
+    loadPhaseSeeding();
+  }, [tournament, apiToken, navigate]);
+
+  // Funciones originales adaptadas a la nueva UI
+  const handleSeedsReordered = (updatedSeeds) => {
+    const updatedPhase = { ...phase, seeds: updatedSeeds };
+    setPhases([updatedPhase]);
     setPhase(updatedPhase);
     setSaved(false);
-
-    console.log('Fase actualizada en el store después de reordenar seeds:', tournamentStore.getState().phases);
   };
 
   const handleSeedSave = () => {
     setSaved(true);
-    console.log('Seeds guardadas localmente:', seeds);
-  }
+    // Mostrar el toast de éxito
+    setMostrarNotificacion(true);
+    setTimeout(() => setMostrarNotificacion(false), 3000);
+  };
 
   const handleSeedPublish = async () => {
-    if (!phase) {
-      return;
-    }
-
+    setMostrarModalExportar(false); // Cierra el modal primero
+    if (!phase) return;
+    
     const seedMapping = parsePhaseSeedingDto(phase.seeds);
-    console.log('Enviando el siguiente seedMapping a la API:', seedMapping);
     const response = await userService.updatePhaseSeeding(apiToken, phase.id, seedMapping);
     console.log('Respuesta de la API al actualizar el seeding de la fase:', response);
-  }
+    // Aquí podrías añadir otro toast de éxito si quieres
+  };
 
-  useEffect(() => {
-    const phaseId = tournament?.phases[0]?.id; // Tomamos el ID de la primera fase del torneo
-    if (!phaseId) {
-      return;
-    }
-
-    const loadPhaseSeeding = async () => {
-      const data = await userService.getPhaseSeeding(apiToken, phaseId);
-      if (!data || data.error || !data.phase) {
-        return;
-      }
-
-      const { phase } = data;
-      setSeeds(phase.seeds);
-      setPhase(phase);
-      console.log('Data obtenida en BracketViewPage:', tournamentStore.getState().phases);
-    };
-    
-    loadPhaseSeeding();
-
-  }, [tournament, apiToken]);
-
-  if (!tournament) {
-    return null;
-  }
+  if (!tournament) return null;
 
   return (
     <div className="bracket-view-page">
       
-      {/* 1. Botón de volver arriba a la izquierda */}
+      {/* BARRA SUPERIOR (Volver y Tema) */}
       <div className="bv-top-bar">
         <button className="btn-volver" onClick={() => navigate('/dashboard')}>
-          ⬅ Volver al Dashboard
+          <FaArrowLeft /> Volver al Dashboard
+        </button>
+        <button className="btn-tema" onClick={toggleTema} title="Cambiar tema">
+          {tema === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
         </button>
       </div>
 
-      {/* 2. Cabecera con el Título y los Botones de Acción */}
+      {/* CABECERA PRINCIPAL */}
       <header className="bv-header">
-        <h1>Bracket del Torneo #{tournament.tournamentName}</h1>
+        <h1>Bracket del Torneo {tournament.tournamentName}</h1>
         
         <div className="bv-botones-accion">
-          <button 
-            className="btn-secundario" 
-            onClick={() => navigate(`/torneo/${tournament.id}/borradores`)}
-          >
-            Ver Borradores
+          <button className="btn-secundario" onClick={() => navigate(`/torneo/${tournament.id}/borradores`)}>
+            <FaHistory /> Ver Borradores
           </button>
           
-          {/* Nuevos botones sin funcionalidad por ahora */}
-          <button 
-            className="btn-secundario" 
-            onClick={handleSeedSave}
-            disabled={saved}
-          >
-            Guardar borrador
+          <button className="btn-secundario" onClick={handleSeedSave} disabled={saved}>
+            <FaSave /> Guardar borrador
           </button>
           
           <button 
             className="btn-exportar" 
-            onClick={handleSeedPublish}
+            onClick={() => setMostrarModalExportar(true)} 
             disabled={!saved}
           >
-            Subir 
+            <FaFileExport /> Subir
           </button>
         </div>
       </header>
 
-      {/* 3. El lienzo donde irá el bracket más adelante */}
-      <main className="">
-        <DraggableSeeding
-          seeds={seeds}
-          setSeeds={setSeeds}
-          onSeedsReordered={handleSeedsReordered}
-        />
-      </main>
+      {/* CONTENEDOR DIVIDIDO 25/75 */}
+      <div className="bv-layout">
+        
+        {/* COLUMNA 1: LISTA ARRASTRABLE DE TU COMPAÑERO (25%) */}
+        <aside className="bv-lista-jugadores">
+          <DraggableSeeding 
+            seeds={seeds} 
+            setSeeds={setSeeds} 
+            onSeedsReordered={handleSeedsReordered}
+          />
+        </aside>
+
+        {/* COLUMNA 2: LIENZO VISUAL (75%) */}
+        <main className="bv-lienzo">
+          <p>El lienzo visual del Drag & Drop o dibujo del Bracket irá aquí.</p>
+        </main>
+      </div>
+
+      {/* --- MODALES Y NOTIFICACIONES --- */}
+      {mostrarNotificacion && (
+        <div className="toast-guardado">
+          ✅ Borrador guardado correctamente
+        </div>
+      )}
+
+      {mostrarModalExportar && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>⚠️ Confirmar Subida</h2>
+            <p>¿Estás seguro de que quieres exportar este orden a start.gg? Esto modificará el torneo oficial.</p>
+            <div className="modal-botones">
+              <button className="btn-cancelar" onClick={() => setMostrarModalExportar(false)}>Cancelar</button>
+              <button className="btn-exportar-confirmar" onClick={handleSeedPublish}>Sí, subir cambios</button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

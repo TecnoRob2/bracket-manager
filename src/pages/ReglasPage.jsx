@@ -2,9 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userStore } from '../store/userStore'; // <-- 1. Importa el store
 import './ReglasPage.css';
+import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
 
 export default function ReglasPage() {
   const navigate = useNavigate();
+  // Control de Tema
+  const tema = userStore((state) => state.tema);
+  const toggleTema = userStore((state) => state.toggleTema);
+
   const cerrarSesion = userStore((state) => state.cerrarSesion); // <-- 2. Extrae la función
   // Datos temporales simulando la lista de tu imagen
   const [clasheos] = useState([
@@ -35,6 +40,9 @@ export default function ReglasPage() {
             Torneos
           </button>
           <button className="btn-incluir">Incluir clasheo</button>
+          <button className="btn-tema" onClick={toggleTema} title="Cambiar tema">
+            {tema === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
+          </button>
         </div>
       </header>
 

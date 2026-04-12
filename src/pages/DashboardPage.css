@@ -24,7 +24,8 @@
 .bp-title-group h1 {
   font-size: 1.25rem;
   margin: 0;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .bp-icon-trophy {
@@ -83,7 +84,7 @@
   display: flex;
   justify-content: space-between;
   background-color: #f5f5f5;
-  border: 1px solid #a0e8a0; /* Borde verde claro como en tu diseño */
+  border: 2px solid #a0e8a0; /* Borde verde claro como en tu diseño */
   border-radius: 12px;
   padding: 15px 20px;
   align-items: center;

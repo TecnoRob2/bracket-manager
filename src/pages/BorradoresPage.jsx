@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './DashboardPage.css'; // Reutilizamos los estilos del Dashboard porque la estructura es la misma
+import { userStore } from '../store/userStore';
+import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
 
 export default function BorradoresPage() {
   const { id } = useParams(); // Extrae el ID del torneo de la URL
   const navigate = useNavigate();
-
+  // Control de Tema
+  const tema = userStore((state) => state.tema);
+  const toggleTema = userStore((state) => state.toggleTema);
   // Mock data: Simulamos que Dexie nos devuelve 3 borradores para este torneo específico
   const [borradores, setBorradores] = useState([
     { idBorrador: 101, nombre: 'Borrador Principal', fecha: '04/04/2026', completado: '100%' },
@@ -28,6 +32,9 @@ export default function BorradoresPage() {
             style={{ backgroundColor: '#555' }} // Cambiamos el color para que sea un botón de "Volver"
           >
             ⬅ Volver al Bracket
+          </button>
+          <button className="btn-tema" onClick={toggleTema} title="Cambiar tema">
+            {tema === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
           </button>
         </div>
       </header>

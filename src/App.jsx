@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'; // IMPORTANTE: Falta importar Navigate
 import { userStore } from './store/userStore';
-
+import { useEffect } from 'react';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage'; // Antes era BracketPage
 import BracketViewPage from './pages/BracketViewPage'; // Nueva página
@@ -9,6 +9,11 @@ import ReglasPage from './pages/ReglasPage';
 
 export default function App() {
   const apiToken = userStore((state) => state.apiToken);
+  
+  const tema = userStore((state) => state.tema);
+  useEffect(() => {
+    document.body.className = tema;
+  }, [tema]);
 
   return (
     <BrowserRouter>
