@@ -14,10 +14,11 @@ export default function SortableItem({id, name, seedNum}) {
         transform: CSS.Transform.toString(transform),
         transition,
         padding: "8px 0",
-        background: "#222",
-        color: "#fff",
+        background: "var(--card-bg, #222)", // <-- Cambios para hacerlo compatible con el tema
+        color: "var(--text-color, #fff)",   // <-- Cambios para hacerlo compatible con el tema
         borderRadius: "8px",
         cursor: "grab",
+        border: "1px solid var(--border-color, #ccc)", // <-- Cambios para hacerlo compatible con el tema
     }
 
     return (
