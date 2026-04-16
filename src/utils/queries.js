@@ -67,5 +67,34 @@ export const apiQueries = {
                 id
             }
         }
+    `,
+    getPlayerHistory:
+    `
+        query GetPlayerHistory($seedId: ID!) {
+            seed(id: $seedId) {
+                players {
+                    id
+                    gamerTag
+                    sets(perPage: 30, page: 1) {
+                        nodes {
+                            id
+                            completedAt
+                            fullRoundText
+                            event {
+                                name
+                                tournament {
+                                    name
+                                }
+                            }
+                            slots {
+                                entrant {
+                                    name
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     `
 }
