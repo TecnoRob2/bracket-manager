@@ -70,12 +70,12 @@ export const apiQueries = {
     `,
     getPlayerHistory:
     `
-        query GetPlayerHistory($seedId: ID!) {
+        query GetPlayerHistory($seedId: ID!, $count: Int!) {
             seed(id: $seedId) {
                 players {
                     id
                     gamerTag
-                    sets(perPage: 30, page: 1) {
+                    sets(perPage: $count, page: 1) {
                         nodes {
                             id
                             completedAt

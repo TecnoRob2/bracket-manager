@@ -2,19 +2,23 @@ import { fetchStartGG } from "../core/api.js";
 import { apiQueries } from "./queries.js";
 
 /**
-Obtiene el historial de las últimas 30 partidas para una lista de jugadores.
-@param {string} apiToken - Token de API de Start.gg.
-@param {Array} playersList - Lista de jugadores en el formato especificado.
-@returns {Promise<Object>} - JSON con el historial de cada jugador.
-*/
-export async function getPlayersMatchHistory(apiToken, playersList) {
+ * Obtiene el historial de x partidas para una lista de jugadores.
+ * @param {string} apiToken - Token de API de Start.gg.
+ * @param {Array} playersList - Lista de jugadores en el formato especificado.
+ * @param {number} count - Número de partidas a recuperar (por defecto 15.
+ * @returns {Promise<Object>} - JSON con el historial de cada jugador.
+ */
+export async function getPlayersMatchHistory(apiToken, playersList, count = 15) {
     const historyResults = {};
 
     // Procesamos cada jugador de la lista
     for (const player of playersList) {
         try {
             // Usamos el id proporcionado (asumiendo que es el seedId de Start.gg)
-            const response = await fetchStartGG(apiToken, apiQueries.getPlayerHistory, { seedId: player.id });
+            const response = await fetchStartGG(apiToken, apiQueries.getPlayerHistory, { 
+                seedId: player.id,
+                count: count 
+            });
             
             if (response.errors) {
                 console.error(`Error obteniendo historial para ${player.entrant.name}:`, response.errors);
