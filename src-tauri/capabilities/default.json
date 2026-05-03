@@ -6,6 +6,60 @@
     "main"
   ],
   "permissions": [
-    "core:default"
+    "core:default",
+    "fs:default",
+    {
+      "identifier": "fs:allow-mkdir",
+      "allow": [
+        {
+          "path": "$APPDATA/tournament"
+        },
+        {
+          "path": "$APPDATA/tournament/*"
+        },
+        {
+          "path": "$APPDATA/tournament/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-dir",
+      "allow": [
+        {
+          "path": "$APPDATA/tournament"
+        },
+        {
+          "path": "$APPDATA/tournament/*"
+        },
+        {
+          "path": "$APPDATA/tournament/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [
+        {
+          "path": "$APPDATA/tournament"
+        },
+        {
+          "path": "$APPDATA/tournament/*"
+        },
+        {
+          "path": "$APPDATA/tournament/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        {
+          "path": "$APPDATA/tournament/*"
+        },
+        {
+          "path": "$APPDATA/tournament/**"
+        }
+      ]
+    }
   ]
 }

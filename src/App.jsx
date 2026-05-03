@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage'; // Antes era BracketPage
 import BracketViewPage from './pages/BracketViewPage'; // Nueva página
-import BorradoresPage from './pages/BorradoresPage'; // Nueva página
+import BorradoresPage from './pages/DraftPage'; // Nueva página
 import ReglasPage from './pages/ReglasPage';
 
 export default function App() {

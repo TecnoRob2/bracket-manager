@@ -7,7 +7,7 @@ export const userService = {
     getUserAndTournaments: async function (apiToken) {
         try {
             const response = await fetchStartGG(apiToken, apiQueries.getUserAndTournaments);
-            console.log('Respuesta de fetchStartGG en userService:', response);
+            //console.log('Respuesta de fetchStartGG en userService:', response);
             if (response.errors || !response.data.currentUser) {
                 throw new Error('El token es inválido o no tiene permisos.');
             }
@@ -31,9 +31,9 @@ export const userService = {
             if (currentPhases.length > 0 && currentPhases[0]?.id === phaseId) {
                 return { phase: currentPhases[0] }; // Retorna la fase ya cargada en el store
             }
-            console.log('No se encontró la fase en el store, realizando fetch a la API para obtener el seeding de la fase con ID:', phaseId, currentPhases[0]?.id);
+            // console.log('No se encontró la fase en el store, realizando fetch a la API para obtener el seeding de la fase con ID:', phaseId, currentPhases[0]?.id);
             const response = await fetchStartGG(apiToken, apiQueries.getPhaseSeeding, { phaseId });
-            console.log('Respuesta de fetchStartGG en getPhaseSeeding:', response);
+            // console.log('Respuesta de fetchStartGG en getPhaseSeeding:', response);
             if (response.errors || !response.data.phase) {
                 throw new Error('No se pudo obtener la información de la fase. Verifica el ID de la fase y el token.');
             }
