@@ -1,0 +1,110 @@
+.h2h-modal {
+  max-width: 560px;
+  width: min(90vw, 560px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.h2h-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.h2h-close {
+  border: 1px solid #ccc;
+  background: transparent;
+}
+
+.h2h-subtitle {
+  margin: 0.25rem 0 0.75rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.h2h-status {
+  margin: 0.5rem 0;
+  opacity: 0.85;
+}
+
+.h2h-error {
+  color: #d9534f;
+}
+
+.h2h-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.h2h-item {
+  border: 1px solid rgba(120, 120, 120, 0.25);
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+}
+
+.h2h-players {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.h2h-side {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(120, 120, 120, 0.12);
+}
+
+.h2h-side.is-winner {
+  background: rgba(40, 167, 69, 0.2);
+  color: #1f6f2c;
+}
+
+.h2h-vs {
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+.h2h-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-top: 4px;
+}
+
+.h2h-label {
+  font-weight: 600;
+  min-width: 70px;
+}
+
+.h2h-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.h2h-page {
+  font-weight: 600;
+}
+
+.h2h-pagination .btn-secundario {
+  border-radius: 999px;
+  padding: 6px 14px;
+  border: 1px solid rgba(120, 120, 120, 0.35);
+  background: rgba(120, 120, 120, 0.12);
+}
+
+.h2h-pagination .btn-secundario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
