@@ -26,10 +26,41 @@ export default function BracketViewPage() {
   const tournament = tournamentStore((state) => state.tournament);
   const setPhases = tournamentStore((state) => state.setPhases);
 
-  // Estados nuevos de la UI (Modales)
-  const [mostrarModalExportar, setMostrarModalExportar] = useState(false);
-  const [mostrarNotificacion, setMostrarNotificacion] = useState(false);
+// Estado para la notificación flotante (Toast)
+const [notificacion, setNotificacion] = useState({
+  visible: false,
+  mensaje: '',
+  tipo: 'success' // Puedes usar 'success', 'error', 'info', etc.
+});
 
+// Estado para el modal emergente de confirmación
+const [modalConfirmacion, setModalConfirmacion] = useState({
+  visible: false,
+  titulo: '',
+  mensaje: '',
+  textoConfirmar: 'Confirmar',
+  onConfirm: null // Función a ejecutar cuando se diga que SÍ
+});
+
+// Función para mostrar un mensaje verde/rojo que desaparece a los 3 segundos
+const mostrarAviso = (mensaje, tipo = 'success') => {
+  setNotificacion({ visible: true, mensaje, tipo });
+  setTimeout(() => setNotificacion(prev => ({ ...prev, visible: false })), 3000);
+};
+
+// Función para mostrar una ventana de "Estás seguro" configurable
+const pedirConfirmacion = (titulo, mensaje, textoConfirmar, callbackConfirmacion) => {
+  setModalConfirmacion({
+    visible: true,
+    titulo,
+    mensaje,
+    textoConfirmar,
+    onConfirm: () => {
+      setModalConfirmacion(prev => ({ ...prev, visible: false })); // Cierra el modal
+      callbackConfirmacion(); // Ejecuta la acción prometida
+    }
+  });
+};
   // Efecto original para cargar datos
   useEffect(() => {
     if (!tournament || !apiToken) {
@@ -56,15 +87,13 @@ export default function BracketViewPage() {
     setSaved(false);
   };
 
-  const handleSeedSave = () => {
-    setSaved(true);
-    // Mostrar el toast de éxito
-    setMostrarNotificacion(true);
-    setTimeout(() => setMostrarNotificacion(false), 3000);
-  };
+const handleSeedSave = () => {
+  setSaved(true);
+  mostrarAviso('💾 Borrador guardado correctamente localmente', 'success');
+};
 
   const handleSeedPublish = async () => {
-    setMostrarModalExportar(false); // Cierra el modal primero
+    setModalConfirmacion(prev => ({ ...prev, visible: false })); // Cierra el modal primero
     if (!phase) return;
     
     const seedMapping = parsePhaseSeedingDto(phase.seeds);
@@ -72,7 +101,15 @@ export default function BracketViewPage() {
     console.log('Respuesta de la API al actualizar el seeding de la fase:', response);
     // Aquí podrías añadir otro toast de éxito si quieres
   };
-
+// Cuando pulsas el botón rojo grande de "Subir"
+const confirmarSubida = () => {
+  pedirConfirmacion(
+    '⚠️ Confirmar subida',
+    '¿Estás seguro de que quieres exportar este orden a start.gg? Esto modificará el torneo oficial en la nube.',
+    'Sí, subir',
+    handleSeedPublish // Pasamos tu función original como callback
+  );
+};
   if (!tournament) return null;
 
   return (
@@ -103,18 +140,15 @@ export default function BracketViewPage() {
           
           <button 
             className="btn-exportar" 
-            onClick={() => setMostrarModalExportar(true)} 
-            disabled={!saved}
+            onClick={confirmarSubida}
           >
             <FaFileExport /> Subir
           </button>
         </div>
       </header>
 
-      {/* CONTENEDOR DIVIDIDO 25/75 */}
       <div className="bv-layout">
         
-        {/* COLUMNA 1: LISTA ARRASTRABLE DE TU COMPAÑERO (25%) */}
         <aside className="bv-lista-jugadores">
           <DraggableSeeding 
             seeds={seeds} 
@@ -130,20 +164,34 @@ export default function BracketViewPage() {
       </div>
 
       {/* --- MODALES Y NOTIFICACIONES --- */}
-      {mostrarNotificacion && (
-        <div className="toast-guardado">
-          ✅ Borrador guardado correctamente
+            {/* NOTIFICACIÓN REUTILIZABLE (TOAST) */}
+      {notificacion.visible && (
+        <div className="toast-guardado" style={{
+          backgroundColor: notificacion.tipo === 'error' ? '#dc3545' : '#28a745'
+        }}>
+          {notificacion.mensaje}
         </div>
       )}
 
-      {mostrarModalExportar && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>⚠️ Confirmar Subida</h2>
-            <p>¿Estás seguro de que quieres exportar este orden a start.gg? Esto modificará el torneo oficial.</p>
+      {/* MODAL DE CONFIRMACIÓN REUTILIZABLE */}
+      {modalConfirmacion.visible && (
+        <div className="modal-overlay" onClick={() => setModalConfirmacion(prev => ({...prev, visible: false}))}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>{modalConfirmacion.titulo}</h2>
+            <p>{modalConfirmacion.mensaje}</p>
             <div className="modal-botones">
-              <button className="btn-cancelar" onClick={() => setMostrarModalExportar(false)}>Cancelar</button>
-              <button className="btn-exportar-confirmar" onClick={handleSeedPublish}>Sí, subir cambios</button>
+              <button 
+                className="btn-cancelar" 
+                onClick={() => setModalConfirmacion(prev => ({...prev, visible: false}))}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn-exportar-confirmar" 
+                onClick={modalConfirmacion.onConfirm}
+              >
+                {modalConfirmacion.textoConfirmar}
+              </button>
             </div>
           </div>
         </div>
@@ -152,3 +200,65 @@ export default function BracketViewPage() {
     </div>
   );
 }
+
+/* =====================================================================
+ * 🛠️ GUÍA DE USO: COMPONENTES REUTILIZABLES (MODAL Y NOTIFICACIONES)
+ * =====================================================================
+ *
+ * Estas dos herramientas sirven para lanzar avisos en pantalla sin 
+ * tener que escribir el HTML (JSX) cada vez.
+ *
+ * ---------------------------------------------------------------------
+ * 1️⃣ NOTIFICACIONES FLOTANTES (TOASTS)
+ * ---------------------------------------------------------------------
+ * Muestra un pequeño mensaje en la esquina que desaparece a los 3 segundos.
+ * Ideal para confirmar que una acción silenciosa ha salido bien.
+ *
+ * ¿CÓMO USARLO?
+ * Simplemente llama a la función `mostrarAviso(mensaje, tipo)` dentro
+ * de cualquier otra función de tu componente.
+ *
+ * EJEMPLOS DE USO:
+ *   // Ejemplo 1: Guardado exitoso (verde por defecto)
+ *   const guardarDatos = () => {
+ *     guardarEnBaseDeDatos();
+ *     mostrarAviso('Datos guardados correctamente', 'success');
+ *   };
+ *
+ *   // Ejemplo 2: Mostrar un error (rojo)
+ *   const fallarDatos = () => {
+ *     mostrarAviso('Error: No se pudo conectar al servidor', 'error');
+ *   };
+ *
+ * ---------------------------------------------------------------------
+ * 2️⃣ VENTANAS EMERGENTES DE CONFIRMACIÓN (MODALES)
+ * ---------------------------------------------------------------------
+ * Muestra una ventana en el centro de la pantalla bloqueando el resto
+ * de la app. Tiene un botón de Cancelar y otro de Confirmar.
+ * Ideal para acciones destructivas (borrar, sobreescribir, exportar).
+ *
+ * ¿CÓMO USARLO?
+ * Llama a la función `pedirConfirmacion(titulo, texto, textoBoton, callback)`
+ * donde "callback" es la función real que quieres que se ejecute SOLO
+ * si el usuario pulsa el botón de confirmar.
+ *
+ * EJEMPLOS DE USO:
+ *   // Paso A: Tienes la función peligrosa que quieres proteger
+ *   const borrarJugador = () => {
+ *     api.delete(jugadorId);
+ *   };
+ *
+ *   // Paso B: Creas una función intermedia que lanza el modal
+ *   const intentarBorrarJugador = () => {
+ *     pedirConfirmacion(
+ *       '⚠️ Borrar Jugador',                      // 1. Título grande
+ *       '¿Estás seguro de que quieres borrarlo?', // 2. Texto explicativo
+ *       'Sí, borrar',                             // 3. Texto del botón rojo
+ *       borrarJugador                             // 4. Función a ejecutar si dice "Sí"
+ *     );
+ *   };
+ *
+ *   // Paso C: En tu botón HTML (JSX), llamas a la intermedia:
+ *   // <button onClick={intentarBorrarJugador}>Borrar</button>
+ * =====================================================================
+ */
