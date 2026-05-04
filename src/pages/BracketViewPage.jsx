@@ -39,41 +39,48 @@ export default function BracketViewPage() {
   const [h2hPlayers, setH2hPlayers] = useState({ teamA: '', teamB: '' });
   const [h2hPage, setH2hPage] = useState(1);
   const h2hPageSize = 3;
-// Estado para la notificación flotante (Toast)
-const [notificacion, setNotificacion] = useState({
-  visible: false,
-  mensaje: '',
-  tipo: 'success' // Puedes usar 'success', 'error', 'info', etc.
-});
 
-// Estado para el modal emergente de confirmación
-const [modalConfirmacion, setModalConfirmacion] = useState({
-  visible: false,
-  titulo: '',
-  mensaje: '',
-  textoConfirmar: 'Confirmar',
-  onConfirm: null // Función a ejecutar cuando se diga que SÍ
-});
-
-// Función para mostrar un mensaje verde/rojo que desaparece a los 3 segundos
-const mostrarAviso = (mensaje, tipo = 'success') => {
-  setNotificacion({ visible: true, mensaje, tipo });
-  setTimeout(() => setNotificacion(prev => ({ ...prev, visible: false })), 3000);
-};
-
-// Función para mostrar una ventana de "Estás seguro" configurable
-const pedirConfirmacion = (titulo, mensaje, textoConfirmar, callbackConfirmacion) => {
-  setModalConfirmacion({
-    visible: true,
-    titulo,
-    mensaje,
-    textoConfirmar,
-    onConfirm: () => {
-      setModalConfirmacion(prev => ({ ...prev, visible: false })); // Cierra el modal
-      callbackConfirmacion(); // Ejecuta la acción prometida
-    }
+  // Estado para la notificación flotante (Toast)
+  const [notificacion, setNotificacion] = useState({
+    visible: false,
+    mensaje: '',
+    tipo: 'success',
   });
-};
+
+  // Estado para el modal emergente de confirmación
+  const [modalConfirmacion, setModalConfirmacion] = useState({
+    visible: false,
+    titulo: '',
+    mensaje: '',
+    textoConfirmar: 'Confirmar',
+    onConfirm: null,
+  });
+
+  // Función para mostrar un mensaje verde/rojo que desaparece a los 3 segundos
+  const mostrarAviso = (mensaje, tipo = 'success') => {
+    setNotificacion({ visible: true, mensaje, tipo });
+    setTimeout(() => setNotificacion((prev) => ({ ...prev, visible: false })), 3000);
+  };
+
+  // Función para mostrar una ventana de "Estás seguro" configurable
+  const pedirConfirmacion = (titulo, mensaje, textoConfirmar, callbackConfirmacion) => {
+    setModalConfirmacion({
+      visible: true,
+      titulo,
+      mensaje,
+      textoConfirmar,
+      onConfirm: () => {
+        setModalConfirmacion((prev) => ({ ...prev, visible: false }));
+        callbackConfirmacion();
+      },
+    });
+  };
+
+  const isDoubleElimination = (selectedPhase?.bracketType ?? '').toLowerCase().includes('double');
+  const bracketData = useMemo(
+    () => buildBracketData(selectedPhase?.seeds ?? [], isDoubleElimination),
+    [selectedPhase?.seeds, isDoubleElimination]
+  );
   // Efecto original para cargar datos
   useEffect(() => {
     if (!tournament || !apiToken) {
@@ -123,17 +130,17 @@ const pedirConfirmacion = (titulo, mensaje, textoConfirmar, callbackConfirmacion
       }
 
       setSaved(true);
-      setMostrarNotificacion(true);
-      setTimeout(() => setMostrarNotificacion(false), 3000);
+      mostrarAviso('Borrador guardado correctamente', 'success');
     } catch (error) {
       console.error('Error guardando borrador:', error);
+      mostrarAviso('No se pudo guardar el borrador', 'error');
     }
   };
 
   // Publica el seeding en la API.
   const handleSeedPublish = async () => {
     setModalConfirmacion(prev => ({ ...prev, visible: false })); // Cierra el modal primero
-    if (!phase) return;
+    if (!selectedPhase) return;
     
     const seedMapping = parsePhaseSeedingDto(selectedPhase.seeds);
     const response = await userService.updatePhaseSeeding(apiToken, selectedPhase.id, seedMapping);
@@ -183,7 +190,7 @@ const confirmarSubida = () => {
     'Sí, subir',
     handleSeedPublish // Pasamos tu función original como callback
   );
-  
+};
 
   if (!tournament) return null;
 
