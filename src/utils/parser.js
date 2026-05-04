@@ -45,13 +45,15 @@ export function parseTournaments(fetchData) {
                 tournamentList.push({
                     id: event.id,
                     name: event.name,
+                    slug: tournament.slug,
                     tournamentName: tournament.name,
                     numAttendees: tournament.numAttendees,
                     startAt: formatUnixDate(tournament.startAt),
                     phases: event.phases.map(phase => ({
                         id: phase.id,
                         name: phase.name,
-                        bracketType: phase.bracketType
+                        bracketType: phase.bracketType,
+                        dirName: tournament.slug + '_'+ event.name + '_' + phase.name,
                     }))
                 });
             });

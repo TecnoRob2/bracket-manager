@@ -23,7 +23,8 @@ export default function AuthPage() {
     setError('');
 
     userService.getUserAndTournaments(inputToken).then((data) => {
-      console.log('Respuesta de getUserAndTournaments:', data);
+      // console.log('Respuesta de getUserAndTournaments:', data);
+
       if (data.error) {
         setError(data.error);
         setCargando(false);
@@ -33,9 +34,9 @@ export default function AuthPage() {
       setApiToken(inputToken);
       setUser(parseUser(data));
       setTournaments(parseTournaments(data));
-      console.log('Usuario y torneos guardados en el store');
-      console.log("Torneos del usuario:", parseTournaments(data));
-      console.log("Usuario guardado:", parseUser(data));
+      
+      // console.log("Torneos del usuario:", parseTournaments(data));
+      // console.log("Usuario guardado:", parseUser(data));
 
       navigate('/dashboard');
     })

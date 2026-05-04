@@ -1,30 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { userStore } from '../store/userStore';
 import { tournamentStore } from '../store/tournamentStore';
-import { userService } from '../services/userService';
-import { parsePhaseSeedingDto } from '../utils/parser';
-import DraggableSeeding from '../components/DraggableSeeding';
 
+import { userService } from '../services/userService';
+import { draftService } from '../services/draftService';
+
+import { parsePhaseSeedingDto } from '../utils/parser';
+import { buildBracketData } from '../core/bracketGenerator';
+import DraggableSeeding from '../components/DraggableSeeding';
+import BracketTabs from '../components/BracketTabs';
 // Nuevos iconos
 import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
 
 import './BracketViewPage.css';
-
 export default function BracketViewPage() {
   const navigate = useNavigate();
 
-  // Control de Tema
+  const [saved, setSaved] = useState(false);
+
+  // Tema (claro/oscuro)
   const tema = userStore((state) => state.tema);
   const toggleTema = userStore((state) => state.toggleTema);
 
-  // Estados originales del compañero
-  const apiToken = userStore.getState().apiToken;
-  const [seeds, setSeeds] = useState([]);
-  const [phase, setPhase] = useState(null);
-  const [saved, setSaved] = useState(false);
+  // Datos del torneo y fase actual
+  const apiToken = userStore((state) => state.apiToken);
   const tournament = tournamentStore((state) => state.tournament);
-  const setPhases = tournamentStore((state) => state.setPhases);
+  const { setPhases, phase_idx } = tournamentStore((state) => state);
+  const currentPhase = tournament?.phases?.[phase_idx] ?? null;
+  const [selectedPhase, setSelectedPhase] = useState(() => currentPhase);
 
 // Estado para la notificación flotante (Toast)
 const [notificacion, setNotificacion] = useState({
@@ -67,37 +72,63 @@ const pedirConfirmacion = (titulo, mensaje, textoConfirmar, callbackConfirmacion
       navigate('/');
       return;
     }
-    const phaseId = tournament?.phases?.[0]?.id;
-    if (!phaseId) return;
+
+    console.log('Cargando BracketViewPage para el torneo:', tournament);
+
+    if (!currentPhase) {
+      console.error('No se encontró la fase del torneo. Verifica que el torneo tenga fases y que se estén cargando correctamente en el store.');
+      return;
+    }
 
     const loadPhaseSeeding = async () => {
-      const data = await userService.getPhaseSeeding(apiToken, phaseId);
-      if (!data || data.error || !data.phase) return;
-      setSeeds(data.phase.seeds);
-      setPhase(data.phase);
-    };
-    loadPhaseSeeding();
-  }, [tournament, apiToken, navigate]);
+      const data = await userService.getPhaseSeeding(apiToken, currentPhase.id);
+      if (!data || data.error || !data.phase) {
+        setSelectedPhase(currentPhase);
+        return;
+      }
 
-  // Funciones originales adaptadas a la nueva UI
+      setSelectedPhase({ ...currentPhase, seeds: data.phase.seeds });
+    };
+    void loadPhaseSeeding();
+  }, [tournament, apiToken, navigate, currentPhase]);
+
+  // Actualiza el orden de seeds desde la lista draggable.
   const handleSeedsReordered = (updatedSeeds) => {
-    const updatedPhase = { ...phase, seeds: updatedSeeds };
+    if (!selectedPhase) return;
+    const updatedPhase = { ...selectedPhase, seeds: updatedSeeds };
+    setSelectedPhase(updatedPhase);
     setPhases([updatedPhase]);
-    setPhase(updatedPhase);
+    console.log('Fase actualizada con nuevo orden de seeds:', updatedPhase);
+
     setSaved(false);
   };
 
-const handleSeedSave = () => {
-  setSaved(true);
-  mostrarAviso('💾 Borrador guardado correctamente localmente', 'success');
-};
+  // Guarda el borrador en disco (Tauri).
+  const handleSeedSave = async () => {
+    if (!selectedPhase || !tournament || !selectedPhase.dirName) return;
 
+    try {  
+      const result = await draftService.exportSeedingDraft(selectedPhase.dirName, selectedPhase.seeds);
+
+      if (!result.success) {
+        throw new Error('No se pudo exportar el borrador de seeding');
+      }
+
+      setSaved(true);
+      setMostrarNotificacion(true);
+      setTimeout(() => setMostrarNotificacion(false), 3000);
+    } catch (error) {
+      console.error('Error guardando borrador:', error);
+    }
+  };
+
+  // Publica el seeding en la API.
   const handleSeedPublish = async () => {
     setModalConfirmacion(prev => ({ ...prev, visible: false })); // Cierra el modal primero
     if (!phase) return;
     
-    const seedMapping = parsePhaseSeedingDto(phase.seeds);
-    const response = await userService.updatePhaseSeeding(apiToken, phase.id, seedMapping);
+    const seedMapping = parsePhaseSeedingDto(selectedPhase.seeds);
+    const response = await userService.updatePhaseSeeding(apiToken, selectedPhase.id, seedMapping);
     console.log('Respuesta de la API al actualizar el seeding de la fase:', response);
     // Aquí podrías añadir otro toast de éxito si quieres
   };
@@ -127,11 +158,13 @@ const confirmarSubida = () => {
 
       {/* CABECERA PRINCIPAL */}
       <header className="bv-header">
-        <h1>Bracket del Torneo {tournament.tournamentName}</h1>
-        
+        <div>
+          <h1>{tournament.tournamentName}</h1>
+          <h2>{tournament.name}</h2>
+        </div>
         <div className="bv-botones-accion">
           <button className="btn-secundario" onClick={() => navigate(`/torneo/${tournament.id}/borradores`)}>
-            <FaHistory /> Ver Borradores
+            <FaHistory /> Ver borradores
           </button>
           
           <button className="btn-secundario" onClick={handleSeedSave} disabled={saved}>
@@ -142,7 +175,7 @@ const confirmarSubida = () => {
             className="btn-exportar" 
             onClick={confirmarSubida}
           >
-            <FaFileExport /> Subir
+            <FaFileExport /> Exportar a StartGG
           </button>
         </div>
       </header>
@@ -151,15 +184,19 @@ const confirmarSubida = () => {
         
         <aside className="bv-lista-jugadores">
           <DraggableSeeding 
-            seeds={seeds} 
-            setSeeds={setSeeds} 
+            seeds={selectedPhase ? selectedPhase.seeds : []} 
             onSeedsReordered={handleSeedsReordered}
           />
         </aside>
 
         {/* COLUMNA 2: LIENZO VISUAL (75%) */}
-        <main className="bv-lienzo">
-          <p>El lienzo visual del Drag & Drop o dibujo del Bracket irá aquí.</p>
+        <main className="bv-lienzo"> 
+          <BracketTabs
+            winnerRounds={bracketData.winnerRounds}
+            loserRounds={bracketData.loserRounds}
+            isDoubleElimination={isDoubleElimination}
+            onSeedClick={handleSeedClick}
+          />
         </main>
       </div>
 

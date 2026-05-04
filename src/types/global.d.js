@@ -85,6 +85,7 @@
 /**
  * @typedef {Object} EventTournament
  * @property {number} id
+ * @property {string} slug
  * @property {string} name
  * @property {string} tournamentName
  * @property {number} numAttendees
@@ -103,5 +104,6 @@
  * @property {number} id
  * @property {string} name
  * @property {string} bracketType
+ * @property {string} dirName
  * @property {PlayerSeed[]} seeds
  */
