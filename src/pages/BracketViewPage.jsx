@@ -9,8 +9,10 @@ import { draftService } from '../services/draftService';
 
 import { parsePhaseSeedingDto } from '../utils/parser';
 import { buildBracketData } from '../core/bracketGenerator';
+import { getHeadToHeadMatches } from '../utils/playerHeadToHead';
 import DraggableSeeding from '../components/DraggableSeeding';
 import BracketTabs from '../components/BracketTabs';
+import HeadToHeadModal from '../components/HeadToHeadModal';
 // Nuevos iconos
 import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
 
@@ -34,6 +36,13 @@ export default function BracketViewPage() {
   // UI (modales y notificaciones)
   const [mostrarModalExportar, setMostrarModalExportar] = useState(false);
   const [mostrarNotificacion, setMostrarNotificacion] = useState(false);
+  const [mostrarModalH2H, setMostrarModalH2H] = useState(false);
+  const [h2hLoading, setH2hLoading] = useState(false);
+  const [h2hError, setH2hError] = useState('');
+  const [h2hSets, setH2hSets] = useState([]);
+  const [h2hPlayers, setH2hPlayers] = useState({ teamA: '', teamB: '' });
+  const [h2hPage, setH2hPage] = useState(1);
+  const h2hPageSize = 3;
 
   const rawBracketType = selectedPhase?.bracketType;
   const bracketType = String(rawBracketType || '').toLowerCase();
@@ -119,12 +128,39 @@ export default function BracketViewPage() {
     // Aquí podrías añadir otro toast de éxito si quieres
   };
 
-  // Demo: click sobre un set.
-  const handleSeedClick = ({ seed, roundIndex, seedIndex }) => {
+  // Click sobre un set para cargar el H2H.
+  const handleSeedClick = async ({ seed }) => {
     const teamA = seed?.teams?.[0]?.name || '---';
     const teamB = seed?.teams?.[1]?.name || '---';
-    const message = `Click en set ${roundIndex + 1}-${seedIndex + 1}: ${teamA} vs ${teamB}`;
-    window.alert(message);
+    const seedIdA = seed?.teams?.[0]?.seedId;
+    const seedIdB = seed?.teams?.[1]?.seedId;
+
+    setH2hPlayers({ teamA, teamB });
+    setH2hError('');
+    setH2hSets([]);
+    setH2hPage(1);
+    setMostrarModalH2H(true);
+
+    if (!apiToken) {
+      setH2hError('No hay token de autenticacion para consultar H2H.');
+      return;
+    }
+
+    if (!seedIdA || !seedIdB) {
+      setH2hError('No se pudieron resolver los IDs de ambos jugadores.');
+      return;
+    }
+
+    setH2hLoading(true);
+    try {
+      const sets = await getHeadToHeadMatches(apiToken, seedIdA, seedIdB, 50);
+      setH2hSets(sets);
+    } catch (error) {
+      console.error('Error cargando sets H2H:', error);
+      setH2hError('No se pudieron cargar los sets.');
+    } finally {
+      setH2hLoading(false);
+    }
   };
 
   
@@ -210,6 +246,18 @@ export default function BracketViewPage() {
           </div>
         </div>
       )}
+
+      <HeadToHeadModal
+        open={mostrarModalH2H}
+        onClose={() => setMostrarModalH2H(false)}
+        players={h2hPlayers}
+        loading={h2hLoading}
+        error={h2hError}
+        sets={h2hSets}
+        page={h2hPage}
+        pageSize={h2hPageSize}
+        onPageChange={setH2hPage}
+      />
 
     </div>
   );

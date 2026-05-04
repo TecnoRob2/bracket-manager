@@ -19,6 +19,7 @@ function buildInitialSlots(phaseSeeds) {
     return {
       name: seed?.gamerTag || 'TBD',
       seedNum: Number.isFinite(parsedSeed) ? parsedSeed : index + 1,
+      seedId: seed?.seedId ?? null,
     };
   });
 
@@ -58,7 +59,10 @@ function simulatePredictedRound(participants, roundIdPrefix, collectLosers = fal
 
     roundSeeds.push({
       id: `${roundIdPrefix}-m${i / 2 + 1}`,
-      teams: [{ name: teamALabel }, { name: teamBLabel }],
+      teams: [
+        { name: teamALabel, seedId: teamA?.seedId ?? null },
+        { name: teamBLabel, seedId: teamB?.seedId ?? null },
+      ],
     });
 
     if (winner) {
