@@ -97,6 +97,7 @@
   display: flex;
   justify-content: space-between;
   background: linear-gradient(180deg, #f7f7f7 0%, #f1f1f1 100%);
+  background: var(--card-bg, #ffffff);
   border: 1px solid #a7e0a7; /* Borde verde claro como en tu diseño */
   border-radius: 12px;
   padding: 14px 18px;
@@ -118,6 +119,7 @@
   gap: 20px; /* Separación horizontal entre el nombre y los detalles */
   flex: 1;
   min-width: 0;
+  margin-left: 150px;
 }
 
 .bp-card-info h2 {
@@ -125,12 +127,12 @@
   margin: 0;
   font-weight: 500; /* Grosor medio */
   min-width: 100px; /* Asegura que el nombre siempre tenga un espacio mínimo */
-  color: #000; /* Asegura que no se vuelva blanco/transparente */
+  color: var(--text-color); /* Asegura que no se vuelva blanco/transparente */
 }
 
 .bp-card-details {
   font-size: 0.95rem; /* Aumentamos un poco el tamaño de los detalles también */
-  color: #111;
+  color: var(--text-color);
   display: flex;
   flex-direction: column;
   gap: 4px; /* Separación entre el número y la categoría */
