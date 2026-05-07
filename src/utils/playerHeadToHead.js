@@ -35,10 +35,16 @@ const QUERY_GET_PLAYER_FROM_USER = `
   }
 `;
 
-const QUERY_H2H_REFINED = `
-  query GetPlayerSets($id: ID!, $count: Int!) {
-    player(id: $id) {
-      sets(perPage: $count, page: 1) {
+const QUERY_SETS_PAGE = `
+  query GetPlayerSetsPage($p1Id: ID!, $page: Int!, $perPage: Int!, $filters: SetFilters) {
+    player(id: $p1Id) {
+      sets(perPage: $perPage, page: $page, filters: $filters) {
+        pageInfo {
+          total
+          totalPages
+          page
+          perPage
+        }
         nodes {
           id
           winnerId
@@ -64,11 +70,10 @@ const QUERY_H2H_REFINED = `
   }
 `;
 
-export async function getHeadToHeadMatches(apiToken, id1, id2, searchRange = 50) {
+export async function getHeadToHeadMatches(apiToken, id1, id2, searchRange = 100) {
     try {
         let p1GlobalId = id1;
         let p2PlayerId = null;
-        let p2UserId = null;
 
         const resolveId = async (id) => {
             if (/[a-z]/i.test(String(id))) {
@@ -115,44 +120,79 @@ export async function getHeadToHeadMatches(apiToken, id1, id2, searchRange = 50)
         const p2Info = await resolveId(id2);
         if (p2Info) {
             p2PlayerId = p2Info.playerId;
-            p2UserId = p2Info.userId;
-            console.log(`DEBUG: Jugador 2 -> ${p2Info.tag} (PlayerID: ${p2PlayerId}, UserID: ${p2UserId})`);
+            console.log(`DEBUG: Jugador 2 -> ${p2Info.tag} (PlayerID: ${p2PlayerId})`);
         }
 
-        const response = await fetchStartGG(apiToken, QUERY_H2H_REFINED, {
-            id: p1GlobalId,
-            count: searchRange
-        });
-
-        console.log('DEBUG: respuesta H2H ->', JSON.stringify(response, null, 2));
-
-        if (response.errors || !response.data?.player) {
-          console.log("DEBUG: Error en la respuesta de sets:", JSON.stringify(response.errors));
-            return [];
+        if (!p1GlobalId || !p2PlayerId) {
+          console.log("DEBUG: No se pudo resolver el PlayerID de uno de los jugadores.");
+          return [];
         }
 
-        const sets = response.data.player.sets.nodes;
-        console.log(`DEBUG: Analizando ${sets.length} sets...`);
-        
-        const slotHasPlayer = (slot, playerId, userId) =>
+        const perPage = 50;
+        const sixMonthsAgo = Math.floor(Date.now() / 1000) - (60 * 60 * 24 * 30 * 6);
+
+        const slotHasPlayer = (slot, playerId) =>
           slot.entrant?.participants?.some(p => (
-            (playerId && String(p.player?.id) === String(playerId)) ||
-            (userId && String(p.user?.id) === String(userId))
+            playerId && String(p.player?.id) === String(playerId)
           ));
 
-        return sets.filter(set => {
-          const isSinglesSet = set.slots.every(
-            slot => (slot.entrant?.participants?.length || 0) === 1
+        let page = 1;
+        let matches = [];
+        let pageInfo = null;
+
+        while (true) {
+          const response = await fetchStartGG(apiToken, QUERY_SETS_PAGE, {
+            p1Id: p1GlobalId,
+            page,
+            perPage,
+            filters: null
+          });
+
+          console.log(`DEBUG: respuesta sets page ${page} ->`, JSON.stringify(response, null, 2));
+
+          if (response.errors || !response.data?.player?.sets) {
+            console.log("DEBUG: Error en la respuesta de sets:", JSON.stringify(response.errors));
+            return [];
+          }
+
+          const sets = response.data.player.sets.nodes || [];
+          pageInfo = response.data.player.sets.pageInfo;
+          console.log(`DEBUG: Analizando ${sets.length} sets (pagina ${page})...`);
+
+          const pageMatches = sets.filter(set =>
+            set.slots.some(slot => slotHasPlayer(slot, p2PlayerId))
           );
 
-          if (!isSinglesSet) return false;
+          if (pageMatches.length > 0) {
+            console.log(`DEBUG: H2H encontrados en pagina ${page}: ${pageMatches.length}`);
+          }
 
-          const hasP2 = set.slots.some(slot => slotHasPlayer(slot, p2PlayerId, p2UserId));
-          if (hasP2) console.log(`DEBUG: Match singles encontrado en ${set.event.tournament.name}!`);
-          return hasP2;
-        }).map(set => {
-          const slotA = set.slots.find(slot => slotHasPlayer(slot, p1GlobalId, null));
-          const slotB = set.slots.find(slot => slotHasPlayer(slot, p2PlayerId, p2UserId));
+          matches = matches.concat(pageMatches);
+
+          if (matches.length >= searchRange) {
+            matches = matches.slice(0, searchRange);
+            break;
+          }
+
+          const oldestCompletedAt = sets
+            .map(set => set.completedAt)
+            .filter(ts => typeof ts === "number")
+            .reduce((min, ts) => (min === null || ts < min ? ts : min), null);
+
+          if (oldestCompletedAt !== null && oldestCompletedAt < sixMonthsAgo) {
+            break;
+          }
+
+          if (!pageInfo || page >= pageInfo.totalPages) {
+            break;
+          }
+
+          page += 1;
+        }
+        
+        return matches.map(set => {
+          const slotA = set.slots.find(slot => slotHasPlayer(slot, p1GlobalId));
+          const slotB = set.slots.find(slot => slotHasPlayer(slot, p2PlayerId));
 
           const sideAName = slotA?.entrant?.name || '---';
           const sideBName = slotB?.entrant?.name || '---';
