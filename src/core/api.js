@@ -8,11 +8,11 @@
  */
 export async function fetchStartGG(apiToken, query, variables = {}) {
     if (typeof apiToken !== 'string' || !apiToken.trim()) {
-        throw new Error('Falta un token de API valido.');
+        throw new Error('El token no es válido. Por favor proporciona un token de acceso válido.');
     }
 
     if (typeof query !== 'string' || !query.trim()) {
-        throw new Error('La consulta GraphQL es invalida.');
+        throw new Error('Ha ocurrido un error con la consulta. Por favor, comunícate con el soporte.');
     }
 
     const response = await fetch('https://api.start.gg/gql/alpha', {
@@ -23,6 +23,19 @@ export async function fetchStartGG(apiToken, query, variables = {}) {
         },
         body: JSON.stringify({ query: query.trim(), variables }),
     });
-    return response.json();
+    const json = await response.json();
+
+    if (!response.ok) {
+        console.error('Error en la respuesta de la API:', json);
+        switch (response.status) {
+            case 400:
+                throw new Error('Invalid request');
+            
+            default:
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+    }
+
+    return json;
 
 }

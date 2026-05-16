@@ -1,4 +1,5 @@
 import { BaseDirectory,
+  exists,
   mkdir,
   writeTextFile
 } from "@tauri-apps/plugin-fs";
@@ -36,6 +37,30 @@ export async function ensureDirectory(relativePath) {
   }
 }
 
+export async function ensureFile(filePath, content = "") {
+  const appDir = await appDataDir();
+  const fullPath = `${appDir}\\${filePath}`;
+  
+  try {
+    const alreadyExists = await exists(filePath, {
+      baseDir: BaseDirectory.AppData,
+    });
+    if (alreadyExists) {
+      console.log('Archivo ya existe:', fullPath);
+      return fullPath;
+    }
+    await writeTextFile(filePath, content, {
+      baseDir: BaseDirectory.AppData,
+    });
+    console.log('Archivo asegurado:', fullPath);
+    return fullPath;
+  }
+  catch (error) {
+    console.error('Error al asegurar el archivo:', error);
+    throw error;
+  }
+}
+
 export async function getRelativePath(dirPath) {
   const appDir = await appDataDir();
   const relativePath = String(dirPath ?? '')
@@ -43,32 +68,4 @@ export async function getRelativePath(dirPath) {
     .replace(/^[\\/]+/, '')
     .replace(/\\/g, '/');
   return relativePath;
-}
-
-export async function ensureTournamentDir() {
-  const dirPath = 'tournament';
-  const appDir = await appDataDir();
-
-  await mkdir(dirPath, {
-    baseDir: BaseDirectory.AppData,
-    recursive: true
-  });
-
-  return `${appDir}\\${dirPath}`;
-}
-
-
-export async function ensureTournamentSlugDir(slug) {
-  await ensureTournamentDir();
-
-  const dirPath = getTournamentDirPath(slug);
-  const appDir = await appDataDir();
-
-  await mkdir(dirPath, {
-    baseDir: BaseDirectory.AppData,
-    recursive: true
-  });
-
-  // console.log('Directorio del torneo asegurado:', `${appDir}\\${dirPath}`);
-  return `${appDir}\\${dirPath}`;
 }

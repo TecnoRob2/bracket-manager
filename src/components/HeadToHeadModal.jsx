@@ -3,6 +3,7 @@ import './HeadToHeadModal.css';
 export default function HeadToHeadModal({
   open,
   onClose,
+  onAddClash,
   players,
   loading,
   error,
@@ -19,11 +20,34 @@ export default function HeadToHeadModal({
   const startIndex = (currentPage - 1) * safePageSize;
   const visibleSets = sets?.slice(startIndex, startIndex + safePageSize) || [];
 
+  const handleAddClash = () => {
+    if (!onAddClash) return;
+
+    const reason = window.prompt('Motivo del clasheo:');
+    if (!reason || !reason.trim()) return;
+
+    const importanceInput = window.prompt('Importancia (1 a 5):', '3');
+    if (importanceInput === null) return;
+
+    const importance = Number.parseInt(importanceInput, 10);
+    if (!Number.isFinite(importance) || importance < 1 || importance > 5) {
+      window.alert('La importancia debe ser un numero del 1 al 5.');
+      return;
+    }
+
+    onAddClash({ reason: reason.trim(), importance });
+  };
+
   return (
     <div className="modal-overlay">
       <div className="modal-content h2h-modal">
         <div className="h2h-header">
           <h2>Historial entre jugadores</h2>
+          {onAddClash && (
+            <button className="btn-primario" onClick={handleAddClash} type="button">
+              Anadir clasheo
+            </button>
+          )}
           <button className="btn-cancelar h2h-close" onClick={onClose} type="button">
             Cerrar
           </button>

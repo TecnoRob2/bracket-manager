@@ -60,6 +60,28 @@
           "path": "$APPDATA/tournament/**"
         }
       ]
+    },
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [
+        {
+          "path": "$APPDATA/*"
+        },
+        {
+          "path": "$APPDATA/**"
+        }
+      ]
+    },
+    {
+      "identifier": "shell:allow-open",
+      "allow": [
+        {
+          "url": "https://start.gg/*"
+        },
+        {
+          "url": "https://www.start.gg/*"
+        }
+      ]
     }
   ]
 }

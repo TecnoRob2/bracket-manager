@@ -269,20 +269,7 @@ body.bracket-view-active #root {
   }
 }
 
-/* MODALES Y TOASTS */
-.toast-guardado {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  background-color: #28a745;
-  color: white;
-  padding: 15px 25px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  font-weight: bold;
-  animation: fadeInOut 3s forwards;
-  z-index: 1000;
-}
+/* MODALES */
 
 .modal-overlay {
   position: fixed;
@@ -295,10 +282,13 @@ body.bracket-view-active #root {
 }
 
 .modal-content {
-  background-color: var(--card-bg); 
-  color: var(--text-color);         
-  padding: 2rem;
+  background-color: var(--card-bg);
+  color: var(--text-color);
   border-radius: 12px;
+}
+
+.modal-content:not(.h2h-modal) {
+  padding: 2rem;
   max-width: 400px;
   text-align: center;
 }
@@ -316,10 +306,3 @@ body.bracket-view-active #root {
 
 .btn-cancelar { padding: 10px 20px; cursor: pointer; border-radius: 6px; border: 1px solid #ccc; }
 .btn-exportar-confirmar { background-color: #d9534f; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(20px); }
-  10% { opacity: 1; transform: translateY(0); }
-  90% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(20px); }
-}

@@ -4,29 +4,49 @@ import { userStore } from '../store/userStore';
 import './AuthPage.css';
 import { userService } from '../services/userService';
 import { parseUser, parseTournaments } from '../utils/parser';
+import { handleError } from '../utils/handleError';
+import { FaMoon, FaSun } from 'react-icons/fa';
+import { open } from '@tauri-apps/plugin-shell';
+import Notification from '../components/Notification';
+import { TfiControlSkipBackward } from 'react-icons/tfi';
 
 export default function AuthPage() {
   const [inputToken, setInputToken] = useState('');
   const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState('');
-  
-  const setApiToken = userStore((state) => state.setApiToken);
-  const setTournaments = userStore((state) => state.setTournaments);
-  const setUser = userStore((state) => state.setUser);
+  const [notificacion, setNotificacion] = useState({
+    open: false,
+    message: '',
+    type: 'error',
+  });
+  const { setApiToken, setTournaments, setUser, tema, toggleTema } = userStore((state) => state);
   const navigate = useNavigate();
+  const tokenUrl = 'https://www.start.gg/admin/profile/developer';
+
+  const handleOpenToken = async (event) => {
+    event.preventDefault();
+    try {
+      await open(tokenUrl);
+    } catch {
+      window.open(tokenUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
 
   const validarToken = async (e) => {
     e.preventDefault();
-    if (!inputToken) return;
+    if (!inputToken) {
+      setNotificacion({ open: true, message: 'Por favor ingresa tu token para continuar.', type: 'error' });
+      return;
+    }
 
     setCargando(true);
-    setError('');
 
     userService.getUserAndTournaments(inputToken).then((data) => {
       // console.log('Respuesta de getUserAndTournaments:', data);
 
       if (data.error) {
-        setError(data.error);
+        console.log('Error al validar token:', data.error);
+        setNotificacion({ open: true, message: data.error.message, type: 'error' });
         setCargando(false);
         return;
       }
@@ -39,14 +59,23 @@ export default function AuthPage() {
       // console.log("Usuario guardado:", parseUser(data));
 
       navigate('/dashboard');
-    })
+    }).catch((error) => {
+      const errorMsg = handleError({ message: error.message, id: 'getUser' });
+      setNotificacion({ open: true, message: errorMsg, type: 'error' });
+      setCargando(false);
+    });
   };
 
   return (
     <div className="login-page">
       <div className="login-card">
-        <h2>Autenticación</h2>
-        <p>Introduce tu Personal Access Token de start.gg para continuar y cargar tus torneos.</p>
+        <div className="login-card-header">
+          <h2>Bienvenido</h2>
+          <button className="btn-tema" onClick={toggleTema} title="Cambiar tema">
+            {tema === 'dark' ? <FaSun size={18} /> : <FaMoon size={18} />}
+          </button>
+        </div>
+        <p>Ingresa tu token de start.gg para ver y organizar tus torneos.</p>
         
         <form onSubmit={validarToken} className="login-form">
           <input 
@@ -56,13 +85,23 @@ export default function AuthPage() {
             onChange={(e) => setInputToken(e.target.value)}
             disabled={cargando}
           />
-          
-          {error && <div className="login-error">⚠️ {error}</div>}
-          
           <button type="submit" className="btn-confirmar" disabled={cargando}>
             {cargando ? 'Cargando torneos...' : 'Confirmar'}
           </button>
         </form>
+        <p className="login-help">
+          Para obtener tu token pulsa{' '}
+          <a className="login-link" href={tokenUrl} onClick={handleOpenToken}>
+            aqui
+          </a>
+        </p>
+        <Notification
+          open={notificacion.open}
+          message={notificacion.message}
+          type={notificacion.type}
+          duration={2500}
+          onClose={() => setNotificacion((prev) => ({ ...prev, open: false }))}
+        />
       </div>
     </div>
   );

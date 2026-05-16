@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userStore } from '../store/userStore';
 import { tournamentStore } from '../store/tournamentStore';
+import { clashService } from '../services/clashService';
 import './DashboardPage.css'; // Acuérdate de renombrar este archivo también
 import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
 
@@ -19,6 +20,8 @@ export default function DashboardPage() {
     navigate(`/torneo/${selectedTournament.id}/bracket`);
   }
 
+  clashService.loadClasheos(); // Carga los clasheos al montar el componente
+  
   const cerrarSesion = userStore((state) => state.cerrarSesion);
 
   const tournaments = userStore((state) => state.tournaments); // Extraemos los torneos del store

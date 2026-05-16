@@ -2,24 +2,24 @@ import { apiQueries } from "../utils/queries"
 import { fetchStartGG } from "../core/api"
 import { parsePhasesSeeding } from "../utils/parser";
 import { tournamentStore } from "../store/tournamentStore";
+import { handleError } from "../utils/handleError";
 export const userService = {
 
     getUserAndTournaments: async function (apiToken) {
         try {
             const response = await fetchStartGG(apiToken, apiQueries.getUserAndTournaments);
-            //console.log('Respuesta de fetchStartGG en userService:', response);
-            if (response.errors || !response.data.currentUser) {
-                throw new Error('El token es inválido o no tiene permisos.');
+            // console.log('Respuesta de fetchStartGG en userService:', response);
+            if (response.error || !response.data) {
+                return { error: handleError({ message: response.error?.message || 'Error desconocido', id: 'getUser' }) };
             }
-            return response.data;   
+            return response.data;
         } catch (error) {
-            console.error('Error al obtener usuario y torneos:', error);
-            return { error: error.message };
+            return { error: handleError({ message: error.message, id: 'getUser' }) };
         }
     },
 
     /**
-     * 
+     * Obtiene el seeding de una fase específica.
      * @param {string} apiToken
      * @param {number} phaseId
      * @returns {Promise<{phase: Phase} | {error: string}>}
@@ -44,7 +44,7 @@ export const userService = {
             return { phase: phases[0] }; // Retorna la fase parseada
         } catch (error) {
             console.error('Error al obtener el seeding de la fase:', error);
-            return { error: error.message };
+            return { error: handleError({error, id: 'getPhaseSeeding'}) };
         }
     },
 
@@ -58,7 +58,7 @@ export const userService = {
             return { success: true };
         } catch (error) {
             console.error('Error al actualizar el seeding de la fase:', error);
-            return { error: error.message };
+            return { error: handleError({error, id: 'updatePhaseSeeding'}) };
         }
     }
 }

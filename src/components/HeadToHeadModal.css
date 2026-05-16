@@ -1,16 +1,41 @@
 .h2h-modal {
-  max-width: 560px;
-  width: min(90vw, 560px);
+  max-width: 1200px;
+  width: min(99vw, 1200px);
+  min-width: 320px;
+  min-height: 320px;
+  height: 80vh;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+  border-radius: 18px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.25);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2vw;
+  box-sizing: border-box;
 }
 
 .h2h-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 18px;
+  padding: 18px 24px 8px 24px;
+  flex-shrink: 0;
 }
 
 .h2h-close {
@@ -19,13 +44,13 @@
 }
 
 .h2h-subtitle {
-  margin: 0.25rem 0 0.75rem;
+  margin: 0.25rem 24px 0.75rem 24px;
   font-weight: 600;
   opacity: 0.85;
 }
 
 .h2h-status {
-  margin: 0.5rem 0;
+  margin: 0.5rem 24px;
   opacity: 0.85;
 }
 
@@ -37,16 +62,25 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  width: 100%;
 }
 
 .h2h-item {
   border: 1px solid rgba(120, 120, 120, 0.25);
   border-radius: 10px;
-  padding: 0.75rem;
+  padding: 1rem 1.2rem;
   background: rgba(0, 0, 0, 0.04);
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .h2h-players {
@@ -90,7 +124,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 12px;
+  margin: 16px 24px 18px 24px;
+  flex-shrink: 0;
 }
 
 .h2h-page {

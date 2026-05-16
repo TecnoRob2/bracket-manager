@@ -13,6 +13,7 @@ import { getHeadToHeadMatches } from '../utils/playerHeadToHead';
 import DraggableSeeding from '../components/DraggableSeeding';
 import BracketTabs from '../components/BracketTabs';
 import HeadToHeadModal from '../components/HeadToHeadModal';
+import Notification from '../components/Notification';
 // Nuevos iconos
 import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
 
@@ -42,9 +43,9 @@ export default function BracketViewPage() {
 
   // Estado para la notificación flotante (Toast)
   const [notificacion, setNotificacion] = useState({
-    visible: false,
-    mensaje: '',
-    tipo: 'success',
+    open: false,
+    message: '',
+    type: 'success',
   });
 
   // Estado para el modal emergente de confirmación
@@ -56,10 +57,9 @@ export default function BracketViewPage() {
     onConfirm: null,
   });
 
-  // Función para mostrar un mensaje verde/rojo que desaparece a los 3 segundos
+  // Función para mostrar un mensaje con auto-cierre
   const mostrarAviso = (mensaje, tipo = 'success') => {
-    setNotificacion({ visible: true, mensaje, tipo });
-    setTimeout(() => setNotificacion((prev) => ({ ...prev, visible: false })), 3000);
+    setNotificacion({ open: true, message: mensaje, type: tipo });
   };
 
   // Función para mostrar una ventana de "Estás seguro" configurable
@@ -252,14 +252,13 @@ const confirmarSubida = () => {
       </div>
 
       {/* --- MODALES Y NOTIFICACIONES --- */}
-            {/* NOTIFICACIÓN REUTILIZABLE (TOAST) */}
-      {notificacion.visible && (
-        <div className="toast-guardado" style={{
-          backgroundColor: notificacion.tipo === 'error' ? '#dc3545' : '#28a745'
-        }}>
-          {notificacion.mensaje}
-        </div>
-      )}
+      <Notification
+        open={notificacion.open}
+        message={notificacion.message}
+        type={notificacion.type}
+        duration={2500}
+        onClose={() => setNotificacion((prev) => ({ ...prev, open: false }))}
+      />
 
       {/* MODAL DE CONFIRMACIÓN REUTILIZABLE */}
       {modalConfirmacion.visible && (
