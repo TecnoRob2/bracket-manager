@@ -80,6 +80,7 @@ export default function AuthPage() {
         <form onSubmit={validarToken} className="login-form">
           <input 
             type="password" 
+            className="TokenSpace"
             placeholder="Pegar token aquí..." 
             value={inputToken}
             onChange={(e) => setInputToken(e.target.value)}
