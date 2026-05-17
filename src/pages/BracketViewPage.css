@@ -1,22 +1,9 @@
-:root {
-  color-scheme: dark;
-}
 
-html,
-body {
-  height: 100%;
-}
+/* ========== BracketViewPage (BEM) ========== */
 
-body.bracket-view-active,
-body.bracket-view-active #root {
-  height: 100dvh;
-  overflow: hidden;
-}
-
-.bracket-view-page {
+.bracket-view {
   padding: 0.75rem clamp(0.75rem, 1.2vw, 1.25rem) 0.75rem;
   width: 100%;
-  max-width: none;
   height: 100dvh;
   min-height: 0;
   margin: 0 auto;
@@ -27,14 +14,13 @@ body.bracket-view-active #root {
   gap: 0.75rem;
 }
 
-.bv-top-bar {
+.bracket-view__top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0;
 }
 
-.btn-volver {
+.bracket-view__back {
   background: none;
   border: none;
   color: var(--text-color, #333);
@@ -45,36 +31,33 @@ body.bracket-view-active #root {
   align-items: center;
   gap: 8px;
 }
-.btn-volver:hover { color: #007bff; }
+.bracket-view__back:hover { color: #007bff; }
 
-.btn-tema {
+.bracket-view__theme {
   background: none;
   border: none;
   color: var(--text-color, #333);
   cursor: pointer;
 }
 
-.bv-header {
+.bracket-view__header {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  flex-wrap: nowrap;
   gap: 0.75rem;
-  margin-bottom: 0;
   border-bottom: 1px solid #ccc;
   padding-bottom: 0.7rem;
 }
 
-.bv-header > div:first-child {
+.bracket-view__header-info {
   display: flex;
   align-items: baseline;
   gap: 0.75rem;
   min-width: 0;
   flex: 0 1 auto;
-  order: 1;
 }
 
-.bv-header h1 {
+.bracket-view__title {
   margin: 0;
   font-size: 1.35rem;
   line-height: 1.1;
@@ -82,7 +65,7 @@ body.bracket-view-active #root {
   white-space: nowrap;
 }
 
-.bv-header h2 {
+.bracket-view__subtitle {
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.2;
@@ -91,15 +74,14 @@ body.bracket-view-active #root {
   white-space: nowrap;
 }
 
-.bv-botones-accion {
+.bracket-view__actions {
   display: flex;
   gap: 10px;
   margin-left: auto;
-  order: 2;
   flex-shrink: 0;
 }
 
-.bv-botones-accion button {
+.bracket-view__button {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -110,17 +92,14 @@ body.bracket-view-active #root {
   border: none;
   font-size: 0.92rem;
 }
+.bracket-view__button--secondary { background-color: #e0e0e0; color: #333; }
+.bracket-view__button--secondary:hover:not(:disabled) { background-color: #d0d0d0; }
+.bracket-view__button--secondary:disabled { background-color: #f0f0f0; color: #999; cursor: not-allowed; }
+.bracket-view__button--export { background-color: #d9534f; color: white; }
+.bracket-view__button--export:hover:not(:disabled) { background-color: #c9302c; }
+.bracket-view__button--export:disabled { background-color: #ffb3b1; cursor: not-allowed; }
 
-.btn-secundario { background-color: #e0e0e0; color: #333; }
-.btn-secundario:hover:not(:disabled) { background-color: #d0d0d0; }
-.btn-secundario:disabled { background-color: #f0f0f0; color: #999; cursor: not-allowed; }
-
-.btn-exportar { background-color: #d9534f; color: white; }
-.btn-exportar:hover:not(:disabled) { background-color: #c9302c; }
-.btn-exportar:disabled { background-color: #ffb3b1; cursor: not-allowed; }
-
-/* LAYOUT 25 / 75 */
-.bv-layout {
+.bracket-view__layout {
   display: flex;
   gap: 10px;
   min-width: 0;
@@ -130,30 +109,23 @@ body.bracket-view-active #root {
   overflow: hidden;
 }
 
-.bv-lista-jugadores {
+.bracket-view__players {
   flex: 0 0 clamp(190px, 14vw, 260px);
   min-width: 0;
-  background-color: transparent; 
-  border: none;
   padding: 0 0.25rem 0 0; 
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: none;
-  min-height: 0;
   height: 100%;
 }
-/* Personalizar el scroll para que quede elegante en oscuro */
-.bv-lista-jugadores::-webkit-scrollbar {
+.bracket-view__players::-webkit-scrollbar {
   width: 6px;
 }
-.bv-lista-jugadores::-webkit-scrollbar-track {
-  background: transparent;
-}
-.bv-lista-jugadores::-webkit-scrollbar-thumb {
+.bracket-view__players::-webkit-scrollbar-thumb {
   background-color: rgba(120, 120, 120, 0.4);
   border-radius: 10px;
 }
-.bv-lienzo {
+
+.bracket-view__canvas {
   flex: 1 1 auto;
   min-width: 0;
   background-color: var(--card-bg, #fafafa);
@@ -171,107 +143,8 @@ body.bracket-view-active #root {
   height: 100%;
 }
 
-.bv-brackets-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  width: 100%;
-  min-width: 0;
-}
-
-.bv-bracket-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
-}
-
-.bv-bracket-title {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--text-color);
-  text-align: left;
-}
-
-.bv-bracket-scroll {
-  overflow: hidden;
-  min-width: 0;
-  padding-bottom: 0;
-}
-
-.bv-empty-bracket {
-  margin: 0;
-  color: var(--text-color);
-  opacity: 0.75;
-  text-align: left;
-  font-size: 0.95rem;
-}
-
-.bv-lienzo::-webkit-scrollbar {
-  height: 10px;
-  width: 10px;
-}
-
-.bv-lienzo::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.bv-lienzo::-webkit-scrollbar-thumb {
-  background-color: rgba(120, 120, 120, 0.45);
-  border-radius: 10px;
-}
-
-@media (max-width: 1100px) {
-  .bracket-view-page {
-    overflow: hidden;
-    height: 100svh;
-    min-height: 0;
-    padding: 0.6rem;
-  }
-
-  .bv-header {
-    flex-wrap: wrap;
-  }
-
-  .bv-header > div:first-child,
-  .bv-botones-accion {
-    order: 0;
-    flex: 1 1 100%;
-  }
-
-  .bv-header > div:first-child {
-    flex-wrap: wrap;
-  }
-
-  .bv-header h1,
-  .bv-header h2 {
-    white-space: normal;
-  }
-
-  .bv-layout {
-    flex-direction: column;
-    height: auto;
-    flex: 1 1 auto;
-    overflow: hidden;
-  }
-
-  .bv-lista-jugadores {
-    flex: 0 0 220px;
-    width: 100%;
-    padding: 0;
-  }
-
-  .bv-lienzo {
-    flex: 1 1 auto;
-    width: 100%;
-    min-height: 0;
-  }
-}
-
-/* MODALES */
-
-.modal-overlay {
+/* MODAL */
+.bracket-view__modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background-color: rgba(0,0,0,0.6);
@@ -280,29 +153,62 @@ body.bracket-view-active #root {
   justify-content: center;
   z-index: 2000;
 }
-
-.modal-content {
+.bracket-view__modal-content {
   background-color: var(--card-bg);
   color: var(--text-color);
   border-radius: 12px;
-}
-
-.modal-content:not(.h2h-modal) {
   padding: 2rem;
   max-width: 400px;
   text-align: center;
 }
-.modal-content h2,
-.modal-content p {
+.bracket-view__modal-content h2,
+.bracket-view__modal-content p {
   color: var(--text-color);
 }
-
-.modal-botones {
+.bracket-view__modal-actions {
   display: flex;
   justify-content: space-around;
   margin-top: 1.5rem;
   gap: 15px;
 }
+.bracket-view__modal-cancel { padding: 10px 20px; cursor: pointer; border-radius: 6px; border: 1px solid #ccc; }
+.bracket-view__modal-confirm { background-color: #d9534f; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-.btn-cancelar { padding: 10px 20px; cursor: pointer; border-radius: 6px; border: 1px solid #ccc; }
-.btn-exportar-confirmar { background-color: #d9534f; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+@media (max-width: 1100px) {
+  .bracket-view {
+    overflow: hidden;
+    height: 100svh;
+    min-height: 0;
+    padding: 0.6rem;
+  }
+  .bracket-view__header {
+    flex-wrap: wrap;
+  }
+  .bracket-view__header-info,
+  .bracket-view__actions {
+    flex: 1 1 100%;
+  }
+  .bracket-view__header-info {
+    flex-wrap: wrap;
+  }
+  .bracket-view__title,
+  .bracket-view__subtitle {
+    white-space: normal;
+  }
+  .bracket-view__layout {
+    flex-direction: column;
+    height: auto;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+  .bracket-view__players {
+    flex: 0 0 220px;
+    width: 100%;
+    padding: 0;
+  }
+  .bracket-view__canvas {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+  }
+}

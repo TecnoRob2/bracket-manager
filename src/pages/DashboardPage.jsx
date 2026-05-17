@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { userStore } from '../store/userStore';
 import { tournamentStore } from '../store/tournamentStore';
 import { clashService } from '../services/clashService';
-import './DashboardPage.css'; // Acuérdate de renombrar este archivo también
-import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
+import './DashboardPage.css';
+import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory, FaTrophy, FaSignOutAlt } from 'react-icons/fa';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -29,42 +29,45 @@ export default function DashboardPage() {
   const [torneos] = useState(/** @type {EventTournament[]} */ (tournaments));
 
   return (
-    <div className="bracket-page">
-      <header className="bp-header">
-        <div className="bp-title-group">
-          <span className="bp-icon-trophy">🏆</span>
-          <h1>Gestión de torneos</h1>
+    <div className="dashboard">
+      <header className="dashboard__header">
+        <div className="dashboard__title-group">
+          <FaTrophy className="dashboard__icon-trophy" />
+          <h1 className="dashboard__title">Tus Torneos</h1>
         </div>
-        <div className="bp-header-buttons">
+        <div className="dashboard__header-actions">
+          <button className="dashboard__button dashboard__button--clasheos" onClick={() => navigate('/clasheos')}>Clasheos</button>
           <button 
-            className="btn-cambiar-token" 
+            className="dashboard__button dashboard__button--logout" 
             onClick={() => {
-              cerrarSesion(); // 1. Borra el token de la memoria
-              navigate('/');  // 2. Fuerza al navegador a ir a la pantalla de Login
+              cerrarSesion();
+              navigate('/');
             }}
+            title="Cerrar sesión"
           >
-            Cerrar sesión
+            <FaSignOutAlt size={20} />
           </button>
-          <button className="btn-clasheos" onClick={() => navigate('/clasheos')}>Clasheos</button>
-          <button className="btn-tema" onClick={toggleTema} title="Cambiar tema">
+          <button className="dashboard__button dashboard__button--theme" onClick={toggleTema} title="Cambiar tema">
             {tema === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
           </button>
         </div>
       </header>
 
-      <main className="bp-list">
+      <main className="dashboard__list">
         {torneos.map((torneo) => (
           <div 
             key={torneo.id} 
-            className="bp-card" 
+            className="dashboard__card" 
             onClick={() => selectTournament(torneo.id)}
           >
-            <div className="bp-card-info">
-              <h2>{torneo.tournamentName}</h2>
-              <div className="bp-card-details">
-                <p>Nº Participantes: {torneo.numAttendees}</p>
-                <p>Evento: {torneo.name}</p>
-                <p>Fecha: {torneo.startAt}</p>
+            <div className="dashboard__card-info">
+              <div className="dashboard__card-names">
+                <h2 className="dashboard__card-title">{torneo.tournamentName}</h2>
+                <h3 className="dashboard__card-subtitle">{torneo.name}</h3>
+              </div>
+              <div className="dashboard__card-meta">
+                <p className="dashboard__card-date">{torneo.startAt}</p>
+                <p className="dashboard__card-participants">{torneo.numAttendees} participantes</p>
               </div>
             </div>
           </div>

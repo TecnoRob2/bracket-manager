@@ -195,35 +195,32 @@ const confirmarSubida = () => {
   if (!tournament) return null;
 
   return (
-    <div className="bracket-view-page">
-      
+    <div className="bracket-view">
       {/* BARRA SUPERIOR (Volver y Tema) */}
-      <div className="bv-top-bar">
-        <button className="btn-volver" onClick={() => navigate('/dashboard')}>
+      <div className="bracket-view__top-bar">
+        <button className="bracket-view__back" onClick={() => navigate('/dashboard')}>
           <FaArrowLeft /> Volver al Dashboard
         </button>
-        <button className="btn-tema" onClick={toggleTema} title="Cambiar tema">
+        <button className="bracket-view__theme" onClick={toggleTema} title="Cambiar tema">
           {tema === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
         </button>
       </div>
 
       {/* CABECERA PRINCIPAL */}
-      <header className="bv-header">
-        <div>
-          <h1>{tournament.tournamentName}</h1>
-          <h2>{tournament.name}</h2>
+      <header className="bracket-view__header">
+        <div className="bracket-view__header-info">
+          <h1 className="bracket-view__title">{tournament.tournamentName}</h1>
+          <h2 className="bracket-view__subtitle">{tournament.name}</h2>
         </div>
-        <div className="bv-botones-accion">
-          <button className="btn-secundario" onClick={() => navigate(`/torneo/${tournament.id}/borradores`)}>
+        <div className="bracket-view__actions">
+          <button className="bracket-view__button bracket-view__button--secondary" onClick={() => navigate(`/torneo/${tournament.id}/borradores`)}>
             <FaHistory /> Ver borradores
           </button>
-          
-          <button className="btn-secundario" onClick={handleSeedSave} disabled={saved}>
+          <button className="bracket-view__button bracket-view__button--secondary" onClick={handleSeedSave} disabled={saved}>
             <FaSave /> Guardar borrador
           </button>
-          
           <button 
-            className="btn-exportar" 
+            className="bracket-view__button bracket-view__button--export" 
             onClick={confirmarSubida}
           >
             <FaFileExport /> Exportar a StartGG
@@ -231,17 +228,15 @@ const confirmarSubida = () => {
         </div>
       </header>
 
-      <div className="bv-layout">
-        
-        <aside className="bv-lista-jugadores">
+      <div className="bracket-view__layout">
+        <aside className="bracket-view__players">
           <DraggableSeeding 
             seeds={selectedPhase ? selectedPhase.seeds : []} 
             onSeedsReordered={handleSeedsReordered}
           />
         </aside>
-
         {/* COLUMNA 2: LIENZO VISUAL (75%) */}
-        <main className="bv-lienzo"> 
+        <main className="bracket-view__canvas"> 
           <BracketTabs
             winnerRounds={bracketData.winnerRounds}
             loserRounds={bracketData.loserRounds}
@@ -262,19 +257,19 @@ const confirmarSubida = () => {
 
       {/* MODAL DE CONFIRMACIÓN REUTILIZABLE */}
       {modalConfirmacion.visible && (
-        <div className="modal-overlay" onClick={() => setModalConfirmacion(prev => ({...prev, visible: false}))}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="bracket-view__modal-overlay" onClick={() => setModalConfirmacion(prev => ({...prev, visible: false}))}>
+          <div className="bracket-view__modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>{modalConfirmacion.titulo}</h2>
             <p>{modalConfirmacion.mensaje}</p>
-            <div className="modal-botones">
+            <div className="bracket-view__modal-actions">
               <button 
-                className="btn-cancelar" 
+                className="bracket-view__modal-cancel" 
                 onClick={() => setModalConfirmacion(prev => ({...prev, visible: false}))}
               >
                 Cancelar
               </button>
               <button 
-                className="btn-exportar-confirmar" 
+                className="bracket-view__modal-confirm" 
                 onClick={modalConfirmacion.onConfirm}
               >
                 {modalConfirmacion.textoConfirmar}
@@ -295,7 +290,6 @@ const confirmarSubida = () => {
         pageSize={h2hPageSize}
         onPageChange={setH2hPage}
       />
-
     </div>
   );
 }

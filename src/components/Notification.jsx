@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import './Notification.css';
 
-export default function Notification({ open, message, type = 'info', duration = 3000, onClose }) {
+export default function Notification({ open, message, type = 'info', duration = 7500, onClose }) {
   useEffect(() => {
     if (!open) return undefined;
     const timer = setTimeout(() => {

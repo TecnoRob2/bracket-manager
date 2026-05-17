@@ -25,8 +25,10 @@ export async function fetchStartGG(apiToken, query, variables = {}) {
     });
     const json = await response.json();
 
-    if (!response.ok) {
-        console.error('Error en la respuesta de la API:', json);
+    if (!response.ok || response.success === false) {
+        if (response.message) {
+            throw new Error(response.message);
+        }
         switch (response.status) {
             case 400:
                 throw new Error('Invalid request');

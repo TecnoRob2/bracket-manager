@@ -33,6 +33,7 @@ export function parseTournaments(fetchData) {
     /** @type {EventTournament[]} */
     const tournamentList = [];
     const currentUserId = fetchData.currentUser.id;
+    const excludedEventWords = ['ladder'];
 
     fetchData.currentUser.tournaments.nodes.forEach((tournament) => {
         // Si admins es null, consideramos que el usuario no es admin de ese torneo.
@@ -41,7 +42,12 @@ export function parseTournaments(fetchData) {
             : false;
 
         if (isAdmin) {
-            tournament.events.forEach((event) => {
+            const allowedEvents = tournament.events.filter((event) => {
+                const eventName = String(event.name || '').toLowerCase();
+                return !excludedEventWords.some((word) => eventName.includes(word.toLowerCase()));
+            });
+
+            allowedEvents.forEach((event) => {
                 tournamentList.push({
                     id: event.id,
                     name: event.name,

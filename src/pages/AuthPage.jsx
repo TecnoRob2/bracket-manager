@@ -45,8 +45,7 @@ export default function AuthPage() {
       // console.log('Respuesta de getUserAndTournaments:', data);
 
       if (data.error) {
-        console.log('Error al validar token:', data.error);
-        setNotificacion({ open: true, message: data.error.message, type: 'error' });
+        setNotificacion({ open: true, message: data.error, type: 'error' });
         setCargando(false);
         return;
       }
@@ -60,7 +59,8 @@ export default function AuthPage() {
 
       navigate('/dashboard');
     }).catch((error) => {
-      const errorMsg = handleError({ message: error.message, id: 'getUser' });
+      console.error('Error inesperado al validar token:', error);
+      const errorMsg = error.message;
       setNotificacion({ open: true, message: errorMsg, type: 'error' });
       setCargando(false);
     });
