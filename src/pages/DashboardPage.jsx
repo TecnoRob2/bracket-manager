@@ -63,7 +63,7 @@ export default function DashboardPage() {
             <div className="dashboard__card-info">
               <div className="dashboard__card-names">
                 <h2 className="dashboard__card-title">{torneo.tournamentName}</h2>
-                <h3 className="dashboard__card-subtitle">{torneo.name}</h3>
+                <h3 className="dashboard__card-subtitle">{torneo.eventName}</h3>
               </div>
               <div className="dashboard__card-meta">
                 <p className="dashboard__card-date">{torneo.startAt}</p>

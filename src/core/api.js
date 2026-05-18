@@ -39,5 +39,4 @@ export async function fetchStartGG(apiToken, query, variables = {}) {
     }
 
     return json;
-
 }

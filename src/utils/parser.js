@@ -50,8 +50,9 @@ export function parseTournaments(fetchData) {
             allowedEvents.forEach((event) => {
                 tournamentList.push({
                     id: event.id,
-                    name: event.name,
+                    eventName: event.name,
                     slug: tournament.slug,
+                    state: event.state,
                     tournamentName: tournament.name,
                     numAttendees: tournament.numAttendees,
                     startAt: formatUnixDate(tournament.startAt),

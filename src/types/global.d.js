@@ -86,7 +86,8 @@
  * @typedef {Object} EventTournament
  * @property {number} id
  * @property {string} slug
- * @property {string} name
+ * @property {string} eventName
+ * @property {string} state
  * @property {string} tournamentName
  * @property {number} numAttendees
  * @property {string} startAt

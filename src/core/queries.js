@@ -27,7 +27,8 @@ export const apiQueries = {
                                 id
                                 name
                                 bracketType
-                            }      
+                            } 
+                            state     
                         }
                         admins {
                             id
