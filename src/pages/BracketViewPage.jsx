@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { userStore } from '../store/userStore';
 import { tournamentStore } from '../store/tournamentStore';
+import { tournamentService } from '../services/tournamentService';
 
 import { userService } from '../services/userService';
 import { draftService } from '../services/draftService';
 
 import { parsePhaseSeedingDto } from '../utils/parser';
-import { buildBracketData } from '../core/bracketGenerator';
+import { buildBracketData } from '../utils/bracketGenerator';
 import { getHeadToHeadMatches } from '../utils/playerHeadToHead';
 import DraggableSeeding from '../components/DraggableSeeding';
 import BracketTabs from '../components/BracketTabs';
@@ -18,6 +19,7 @@ import Notification from '../components/Notification';
 import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
 
 import './BracketViewPage.css';
+import { clashService } from '../services/clashService';
 export default function BracketViewPage() {
   const navigate = useNavigate();
 
@@ -37,7 +39,7 @@ export default function BracketViewPage() {
   const [h2hLoading, setH2hLoading] = useState(false);
   const [h2hError, setH2hError] = useState('');
   const [h2hSets, setH2hSets] = useState([]);
-  const [h2hPlayers, setH2hPlayers] = useState({ teamA: '', teamB: '' });
+  const [h2hPlayers, setH2hPlayers] = useState({ p1id: '', p2id: '', teamA: '', teamB: '' });
   const [h2hPage, setH2hPage] = useState(1);
   const h2hPageSize = 3;
 
@@ -143,9 +145,17 @@ export default function BracketViewPage() {
     if (!selectedPhase) return;
     
     const seedMapping = parsePhaseSeedingDto(selectedPhase.seeds);
-    const response = await userService.updatePhaseSeeding(apiToken, selectedPhase.id, seedMapping);
+    const response = await tournamentService.updateSeeding(selectedPhase.id, seedMapping);
     console.log('Respuesta de la API al actualizar el seeding de la fase:', response);
-    // Aquí podrías añadir otro toast de éxito si quieres
+    if (response.success) {
+      setNotificacion({ open: true, message: 'Seeding actualizado en StartGG', type: 'success' });
+    }
+
+    if (response.error) {
+      setNotificacion({ open: true, message: 'Error al actualizar el seeding en StartGG', type: 'error' });
+    }
+    setSaved(true);
+
   };
 
   // Click sobre un set para cargar el H2H.
@@ -154,6 +164,8 @@ export default function BracketViewPage() {
     const teamB = seed?.teams?.[1]?.name || '---';
     const seedIdA = seed?.teams?.[0]?.seedId;
     const seedIdB = seed?.teams?.[1]?.seedId;
+
+    console.log('Seed clickeada:', seed);
 
     setH2hPlayers({ teamA, teamB });
     setH2hError('');
@@ -183,10 +195,10 @@ export default function BracketViewPage() {
     }
   };
 // Cuando pulsas el botón rojo grande de "Subir"
-const confirmarSubida = () => {
+const uploadStartGG = async () => {
   pedirConfirmacion(
-    '⚠️ Confirmar subida',
-    '¿Estás seguro de que quieres exportar este orden a start.gg? Esto modificará el torneo oficial en la nube.',
+    'Confirmar subida a StartGG',
+    'Esto modificará el torneo en la plataforma.',
     'Sí, subir',
     handleSeedPublish // Pasamos tu función original como callback
   );
@@ -210,7 +222,7 @@ const confirmarSubida = () => {
       <header className="bracket-view__header">
         <div className="bracket-view__header-info">
           <h1 className="bracket-view__title">{tournament.tournamentName}</h1>
-          <h2 className="bracket-view__subtitle">{tournament.name}</h2>
+          <h2 className="bracket-view__subtitle">{tournament.eventName}</h2>
         </div>
         <div className="bracket-view__actions">
           <button className="bracket-view__button bracket-view__button--secondary" onClick={() => navigate(`/torneo/${tournament.id}/borradores`)}>
@@ -221,7 +233,7 @@ const confirmarSubida = () => {
           </button>
           <button 
             className="bracket-view__button bracket-view__button--export" 
-            onClick={confirmarSubida}
+            onClick={uploadStartGG}
           >
             <FaFileExport /> Exportar a StartGG
           </button>
@@ -282,6 +294,7 @@ const confirmarSubida = () => {
       <HeadToHeadModal
         open={mostrarModalH2H}
         onClose={() => setMostrarModalH2H(false)}
+        onAddClash={() => clashService.addClasheo({test: "test"})}
         players={h2hPlayers}
         loading={h2hLoading}
         error={h2hError}

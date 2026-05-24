@@ -3,11 +3,6 @@
   --text-h: #08060d;
   --bg: #fff;
   --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
@@ -21,6 +16,15 @@
   --bg-color: #ffffff;
   --text-color: #333333;
   --card-bg: #f9f9f9;
+  --canvas-bg: #e8e8e8;
+  --primary-color: #ff9800;
+  --primary-color-hover: #f08d00;
+  --primary-contrast: #ffffff;
+  --bracket-seed-bg: #1a1d2e;
+  --bracket-seed-text: #ffffff;
+  --bracket-seed-shadow: rgba(17, 22, 48, 0.9);
+  --bracket-muted: #7a7684;
+  --bracket-line: #707070;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -35,8 +39,11 @@
 
 body, html, #root {
   margin: 0;
+  width: 100%;
   min-width: 100%;
   min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
   background-color: var(--bg-color);
   color: var(--text-color);
   /* Esta línea hace que el cambio de claro a oscuro sea animado y suave */
@@ -46,13 +53,19 @@ body.dark {
   color-scheme: dark;
   --bg-color: #1a1a1a; /* Un gris muy oscuro, casi negro */
   --text-color: #f1f1f1;
+  --canvas-bg: #171717;
   --card-bg: #2d2d2d;
+  --bracket-seed-bg: #22283d;
+  --bracket-seed-text: #f1f1f1;
+  --bracket-seed-shadow: rgba(0, 0, 0, 0.55);
+  --bracket-muted: #b3b0bf;
+  --bracket-line: #8b8b96;
 }
 #root {
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
   text-align: center;
-  border-inline: 1px solid var(--border);
+  border-inline: none;
   min-height: 100svh;
   display: flex;
   flex-direction: column;

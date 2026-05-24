@@ -91,6 +91,7 @@
  * @property {string} tournamentName
  * @property {number} numAttendees
  * @property {string} startAt
+ * @property {string} iconUrl
  */
 
 /**

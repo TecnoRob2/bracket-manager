@@ -47,6 +47,9 @@
         },
         {
           "path": "$APPDATA/tournament/**"
+        },
+        {
+          "path": "$APPDATA/clasheos.json"
         }
       ]
     },
@@ -58,6 +61,9 @@
         },
         {
           "path": "$APPDATA/tournament/**"
+        },
+        {
+          "path": "$APPDATA/clasheos.json"
         }
       ]
     },

@@ -13,13 +13,14 @@ export default function SortableItem({id, name, seedNum}) {
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        padding: "8px 0",
-        background: "var(--card-bg, #222)", // <-- Cambios para hacerlo compatible con el tema
-        color: "var(--text-color, #fff)",   // <-- Cambios para hacerlo compatible con el tema
+        padding: "8px 12px",
+        marginBottom: "10px",
+        background: "var(--primary-color, #ff9800)",
+        color: "var(--primary-contrast, #ffffff)",
         borderRadius: "8px",
         cursor: "grab",
-        border: "1px solid var(--border-color, #ccc)", // <-- Cambios para hacerlo compatible con el tema
-    }
+        border: "1px solid var(--primary-color-hover, #f08d00)",
+    };
 
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>

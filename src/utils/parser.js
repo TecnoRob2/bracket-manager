@@ -55,6 +55,7 @@ export function parseTournaments(fetchData) {
                     state: event.state,
                     tournamentName: tournament.name,
                     numAttendees: tournament.numAttendees,
+                    iconUrl: tournament.images?.[0]?.url || '',
                     startAt: formatUnixDate(tournament.startAt),
                     phases: event.phases.map(phase => ({
                         id: phase.id,

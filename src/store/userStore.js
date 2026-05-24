@@ -17,7 +17,7 @@ export const userStore = create(
       apiToken: null,
       user: null,
       tournaments: [],
-      tema: 'light', // <-- NUEVO: Estado del tema
+      tema: 'light',
       setApiToken: (token) => set({ apiToken: token }),
       setUser: (user) => set({ user: user }),
       setTournaments: (tournaments) => set({ tournaments: tournaments}), // <-- Nueva función

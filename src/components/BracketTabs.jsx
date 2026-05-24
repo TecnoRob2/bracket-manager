@@ -6,7 +6,7 @@ import {
   SeedTeam,
   SeedTime,
   SingleLineSeed,
-} from '@ready2/react-brackets';
+} from './BracketRenderer';
 
 import './BracketTabs.css';
 
@@ -22,6 +22,7 @@ export default function BracketTabs({
   const isDraggingRef = useRef(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
   const suppressClickRef = useRef(false);
+  const scrollRef = useRef(null);
   const activeRounds = activeTab === 'losers' ? loserRounds : winnerRounds;
   const emptyMessage = isDoubleElimination
     ? 'No hay suficientes jugadores para armar loser bracket.'
@@ -34,8 +35,17 @@ export default function BracketTabs({
    * @param {WheelEvent} event
    */
   const handleWheel = (event) => {
-    event.preventDefault();
-    const direction = event.deltaY > 0 ? -0.08 : 0.08;
+    const isPinchGesture = event.ctrlKey || event.metaKey;
+
+    if (isPinchGesture) {
+      setOffset((current) => ({
+        x: current.x - event.deltaX,
+        y: current.y - event.deltaY,
+      }));
+      return;
+    }
+
+    const direction = event.deltaY > 0 ? -0.02 : 0.02;
     const nextZoom = clamp(zoom + direction, 0.5, 2.5);
     setZoom(nextZoom);
   };
@@ -157,11 +167,12 @@ export default function BracketTabs({
         {activeRounds.length > 0 ? (
           <div
             className="bv-bracket-scroll"
-            onWheel={handleWheel}
+            ref={scrollRef}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
+            onWheel={handleWheel}
           >
             <div
               className="bv-bracket-stage"

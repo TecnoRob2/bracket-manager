@@ -88,8 +88,8 @@ body.dark .login-help {
 }
 
 .btn-confirmar {
-  background-color: #ff9800;
-  color: white;
+  background-color: var(--primary-color, #ff9800);
+  color: var(--primary-contrast, #ffffff);
   border: none;
   border-radius: 8px;
   padding: 12px;
@@ -101,7 +101,7 @@ body.dark .login-help {
 }
 
 .btn-confirmar:hover {
-  background-color: #f08d00;
+  background-color: var(--primary-color-hover, #f08d00);
   transform: translateY(-1px);
 }
 

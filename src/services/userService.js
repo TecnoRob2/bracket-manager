@@ -1,18 +1,24 @@
-import { apiQueries } from "../utils/queries"
+import { apiQueries } from "../core/queries"
 import { fetchStartGG } from "../core/api"
-import { parsePhasesSeeding } from "../utils/parser";
+import { parsePhasesSeeding, parseUser } from "../utils/parser";
 import { tournamentStore } from "../store/tournamentStore";
+import { userStore } from "../store/userStore";
 import { handleError } from "../utils/handleError";
 export const userService = {
 
-    getUserAndTournaments: async function (apiToken) {
+    getUser: async function (apiToken) {
         try {
-            const response = await fetchStartGG(apiToken, apiQueries.getUserAndTournaments);
+            const { setUser } = userStore.getState();
+            const response = await fetchStartGG(apiToken, apiQueries.getUser);
             // console.log('Respuesta de fetchStartGG en userService:', response);
             if (response.error || !response.data) {
                 return { error: handleError({ message: response.error?.message || 'Error desconocido', id: 'getUser' }) };
             }
-            return response.data;
+        
+            const userData = parseUser(response.data);
+            console.log('Datos del usuario obtenidos:', userData);
+            setUser(userData.user);
+            return userData;
         } catch (error) {
             return { error: handleError({ message: error.message, id: 'getUser' }) };
         }
@@ -47,18 +53,4 @@ export const userService = {
             return { error: handleError({error, id: 'getPhaseSeeding'}) };
         }
     },
-
-    updatePhaseSeeding: async function(apiToken, phaseId, seedMapping) {
-        try {
-            const response = await fetchStartGG(apiToken, apiQueries.updatePhaseSeeding, { phaseId, seedMapping });
-            console.log('Respuesta de fetchStartGG en updatePhaseSeeding:', response);
-            if (response.errors || !response.data.updatePhaseSeeding) {
-                throw new Error('No se pudo actualizar el seeding de la fase. Verifica los datos enviados y el token.');
-            }
-            return { success: true };
-        } catch (error) {
-            console.error('Error al actualizar el seeding de la fase:', error);
-            return { error: handleError({error, id: 'updatePhaseSeeding'}) };
-        }
-    }
 }

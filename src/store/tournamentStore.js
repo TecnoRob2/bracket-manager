@@ -12,10 +12,11 @@ export const tournamentStore = create(
       phase_idx: 0,
       phases: [],
       drafts: [],
-
+      tournamentList: [],
       setTournament: (tournament) => set({ tournament: tournament }),
       setPhases: (phases) => set({ phases: phases }),
       setDrafts: (drafts) => set({ drafts: drafts }),
+      setTournamentList: (tournaments) => set({ tournamentList: tournaments }),
       setPhaseIndex: (index) => set({ phase_idx: index }),
       cerrarSesion: () => set({ tournament: null, phases: [], drafts: [] }), // Limpia todo al salir
     }),

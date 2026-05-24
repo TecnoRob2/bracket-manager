@@ -18,7 +18,7 @@ export default function AuthPage() {
     message: '',
     type: 'error',
   });
-  const { setApiToken, setTournaments, setUser, tema, toggleTema } = userStore((state) => state);
+  const { setApiToken, setUser, tema, toggleTema } = userStore((state) => state);
   const navigate = useNavigate();
   const tokenUrl = 'https://www.start.gg/admin/profile/developer';
 
@@ -41,8 +41,8 @@ export default function AuthPage() {
 
     setCargando(true);
 
-    userService.getUserAndTournaments(inputToken).then((data) => {
-      // console.log('Respuesta de getUserAndTournaments:', data);
+    userService.getUser(inputToken).then((data) => {
+      // console.log('Respuesta de getUser:', data);
 
       if (data.error) {
         setNotificacion({ open: true, message: data.error, type: 'error' });
@@ -51,12 +51,6 @@ export default function AuthPage() {
       }
       setCargando(false);
       setApiToken(inputToken);
-      setUser(parseUser(data));
-      setTournaments(parseTournaments(data));
-      
-      // console.log("Torneos del usuario:", parseTournaments(data));
-      // console.log("Usuario guardado:", parseUser(data));
-
       navigate('/dashboard');
     }).catch((error) => {
       console.error('Error inesperado al validar token:', error);

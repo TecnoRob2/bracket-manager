@@ -1,13 +1,21 @@
 export const apiQueries = {
-    // Consulta para obtener el usuario actual y sus torneos pendientes
-    getUserAndTournaments: `
-        query GetUserAndTournaments {
+    getUser: `
+        query GetUser {
             currentUser {
                 id
                 player {
                     gamerTag
                 }
                 name
+            }
+        }
+    `,
+
+    // Consulta para obtener el usuario actual y sus torneos pendientes
+    getTournaments: `
+        query GetTournaments {
+            currentUser {
+                id
                 tournaments(
                     query: {
                         perPage: 10
@@ -20,6 +28,9 @@ export const apiQueries = {
                         numAttendees
                         slug
                         startAt
+                        images(type: "profile"){
+                          url
+                        }
                         events(filter: { videogameId: 1386 }) {
                             id
                             name

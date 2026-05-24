@@ -1,3 +1,4 @@
+import { FaTimes } from 'react-icons/fa';
 import './HeadToHeadModal.css';
 
 export default function HeadToHeadModal({
@@ -19,6 +20,20 @@ export default function HeadToHeadModal({
   const currentPage = Math.min(Math.max(page || 1, 1), totalPages);
   const startIndex = (currentPage - 1) * safePageSize;
   const visibleSets = sets?.slice(startIndex, startIndex + safePageSize) || [];
+  const escapeRegExp = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const getScoreOnly = (set) => {
+    if (!set.marcador) return 'Sin marcador';
+
+    const scoreWithoutNames = [set.sideAName, set.sideBName]
+      .filter(Boolean)
+      .reduce(
+        (score, name) => score.replace(new RegExp(escapeRegExp(name), 'gi'), ''),
+        set.marcador
+      );
+    const scoreMatch = scoreWithoutNames.match(/(\d+)\s*[-–]\s*(\d+)/);
+
+    return scoreMatch ? `${scoreMatch[1]} - ${scoreMatch[2]}` : set.marcador;
+  };
 
   const handleAddClash = () => {
     if (!onAddClash) return;
@@ -42,15 +57,23 @@ export default function HeadToHeadModal({
     <div className="modal-overlay">
       <div className="modal-content h2h-modal">
         <div className="h2h-header">
-          <h2>Historial entre jugadores</h2>
-          {onAddClash && (
-            <button className="btn-primario" onClick={handleAddClash} type="button">
-              Anadir clasheo
+          <h2>H2H</h2>
+          <div className="h2h-header-actions">
+            {onAddClash && (
+              <button className="btn-primario h2h-warning-button" onClick={handleAddClash} type="button">
+                Incluir advertencia
+              </button>
+            )}
+            <button
+              aria-label="Cerrar historial H2H"
+              className="btn-cancelar h2h-close"
+              onClick={onClose}
+              title="Cerrar"
+              type="button"
+            >
+              <FaTimes aria-hidden="true" size={16} />
             </button>
-          )}
-          <button className="btn-cancelar h2h-close" onClick={onClose} type="button">
-            Cerrar
-          </button>
+          </div>
         </div>
         <p className="h2h-subtitle">
           {players?.teamA || '---'} vs {players?.teamB || '---'}
@@ -67,12 +90,12 @@ export default function HeadToHeadModal({
           <ul className="h2h-list">
             {visibleSets.map((set) => (
               <li key={set.id || `${set.evento}-${set.fecha}-${set.marcador}`} className="h2h-item">
-                <div className="h2h-players">
-                  <span className={set.winnerSide === 'A' ? 'h2h-side is-winner' : 'h2h-side'}>
+                <div className={`h2h-set-title ${set.winnerSide ? 'has-winner' : 'no-winner'}`}>
+                  <span className={set.winnerSide === 'A' ? 'h2h-title-player is-winner' : 'h2h-title-player'}>
                     {set.sideAName}
                   </span>
-                  <span className="h2h-vs">vs</span>
-                  <span className={set.winnerSide === 'B' ? 'h2h-side is-winner' : 'h2h-side'}>
+                  <span className="h2h-score">{getScoreOnly(set)}</span>
+                  <span className={set.winnerSide === 'B' ? 'h2h-title-player is-winner' : 'h2h-title-player'}>
                     {set.sideBName}
                   </span>
                 </div>
@@ -87,10 +110,6 @@ export default function HeadToHeadModal({
                 <div className="h2h-row">
                   <span className="h2h-label">Evento:</span>
                   <span>{set.nombreEvento}</span>
-                </div>
-                <div className="h2h-row">
-                  <span className="h2h-label">Marcador:</span>
-                  <span>{set.marcador}</span>
                 </div>
               </li>
             ))}
