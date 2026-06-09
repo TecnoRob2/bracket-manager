@@ -50,5 +50,24 @@ export const clashService = {
             (clasheo.p1_id === p1_id && clasheo.p2_id === p2_id) ||
             (clasheo.p1_id === p2_id && clasheo.p2_id === p1_id)
         );
-    }
+    },
+
+    getClasheo: async (p1_id, p2_id) => {
+        const { clasheos } = clashStore.getState();
+        return clasheos.find(clasheo =>
+            (String(clasheo.p1_id) === String(p1_id) && String(clasheo.p2_id) === String(p2_id)) ||
+            (String(clasheo.p1_id) === String(p2_id) && String(clasheo.p2_id) === String(p1_id))
+        ) || null;
+    },
+
+    removeClasheo: async (p1_id, p2_id) => {
+        const { clasheos, setClasheos } = clashStore.getState();
+        const updatedClasheos = clasheos.filter(clasheo =>
+            !((String(clasheo.p1_id) === String(p1_id) && String(clasheo.p2_id) === String(p2_id)) ||
+              (String(clasheo.p1_id) === String(p2_id) && String(clasheo.p2_id) === String(p1_id)))
+        );
+        setClasheos(updatedClasheos);
+        await clashService.saveClasheos(updatedClasheos);
+    },
+
 }

@@ -30,11 +30,11 @@ export const userService = {
      * @param {number} phaseId
      * @returns {Promise<{phase: Phase} | {error: string}>}
      */
-    getPhaseSeeding: async function (apiToken, phaseId) {
+    getPhaseSeeding: async function (apiToken, phaseId, forceReload = false) {
         try {
             const currentPhases = tournamentStore.getState().phases;
             const setPhases = tournamentStore.getState().setPhases;
-            if (currentPhases.length > 0 && currentPhases[0]?.id === phaseId) {
+            if (!forceReload && currentPhases.length > 0 && currentPhases[0]?.id === phaseId) {
                 return { phase: currentPhases[0] }; // Retorna la fase ya cargada en el store
             }
             // console.log('No se encontró la fase en el store, realizando fetch a la API para obtener el seeding de la fase con ID:', phaseId, currentPhases[0]?.id);

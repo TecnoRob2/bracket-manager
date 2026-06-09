@@ -5,6 +5,8 @@ export default function HeadToHeadModal({
   open,
   onClose,
   onAddClash,
+  onRemoveClash,
+  activeClash,
   players,
   loading,
   error,
@@ -59,10 +61,21 @@ export default function HeadToHeadModal({
         <div className="h2h-header">
           <h2>H2H</h2>
           <div className="h2h-header-actions">
-            {onAddClash && (
-              <button className="btn-primario h2h-warning-button" onClick={handleAddClash} type="button">
-                Incluir advertencia
+            {activeClash ? (
+              <button 
+                className="btn-cancelar h2h-warning-button" 
+                onClick={onRemoveClash} 
+                type="button"
+                style={{ backgroundColor: '#dc2626', color: '#fff' }}
+              >
+                Eliminar advertencia
               </button>
+            ) : (
+              onAddClash && (
+                <button className="btn-primario h2h-warning-button" onClick={handleAddClash} type="button">
+                  Incluir advertencia
+                </button>
+              )
             )}
             <button
               aria-label="Cerrar historial H2H"
@@ -78,6 +91,20 @@ export default function HeadToHeadModal({
         <p className="h2h-subtitle">
           {players?.teamA || '---'} vs {players?.teamB || '---'}
         </p>
+
+        {activeClash && (
+          <div className="h2h-clash-warning" style={{
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid #ef4444',
+            padding: '10px 15px',
+            borderRadius: '6px',
+            marginBottom: '15px',
+            color: '#ef4444'
+          }}>
+            <strong>⚠️ Advertencia de Clasheo:</strong> {activeClash.reason} 
+            <span style={{ marginLeft: '10px' }}>(Importancia: {activeClash.importance}/5)</span>
+          </div>
+        )}
 
         {loading && <p className="h2h-status">Cargando sets...</p>}
         {error && <p className="h2h-status h2h-error">{error}</p>}

@@ -99,6 +99,7 @@
  * @property {number} seedId
  * @property {string} seedNum
  * @property {string} gamerTag
+ * @property {number} playerId
  */
 
 /**

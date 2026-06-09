@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { userStore } from '../store/userStore';
@@ -16,13 +16,12 @@ import BracketTabs from '../components/BracketTabs';
 import HeadToHeadModal from '../components/HeadToHeadModal';
 import Notification from '../components/Notification';
 // Nuevos iconos
-import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory } from 'react-icons/fa';
+import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory, FaSyncAlt } from 'react-icons/fa';
 
 import './BracketViewPage.css';
 import { clashService } from '../services/clashService';
 export default function BracketViewPage() {
   const navigate = useNavigate();
-
   const [saved, setSaved] = useState(false);
 
   // Tema (claro/oscuro)
@@ -36,10 +35,12 @@ export default function BracketViewPage() {
   const currentPhase = tournament?.phases?.[phase_idx] ?? null;
   const [selectedPhase, setSelectedPhase] = useState(() => currentPhase);
   const [mostrarModalH2H, setMostrarModalH2H] = useState(false);
+  const [reloadingTournament, setReloadingTournament] = useState(false);
   const [h2hLoading, setH2hLoading] = useState(false);
   const [h2hError, setH2hError] = useState('');
   const [h2hSets, setH2hSets] = useState([]);
-  const [h2hPlayers, setH2hPlayers] = useState({ p1id: '', p2id: '', teamA: '', teamB: '' });
+  const [h2hPlayers, setH2hPlayers] = useState({ p1_id: null, p2_id: null, teamA: '', teamB: '' });
+  const [activeClash, setActiveClash] = useState(null);
   const [h2hPage, setH2hPage] = useState(1);
   const h2hPageSize = 3;
 
@@ -58,11 +59,6 @@ export default function BracketViewPage() {
     textoConfirmar: 'Confirmar',
     onConfirm: null,
   });
-
-  // Función para mostrar un mensaje con auto-cierre
-  const mostrarAviso = (mensaje, tipo = 'success') => {
-    setNotificacion({ open: true, message: mensaje, type: tipo });
-  };
 
   // Función para mostrar una ventana de "Estás seguro" configurable
   const pedirConfirmacion = (titulo, mensaje, textoConfirmar, callbackConfirmacion) => {
@@ -83,6 +79,22 @@ export default function BracketViewPage() {
     () => buildBracketData(selectedPhase?.seeds ?? [], isDoubleElimination),
     [selectedPhase?.seeds, isDoubleElimination]
   );
+
+  const loadPhaseSeeding = useCallback(async (forceReload = false) => {
+    if (!currentPhase || !apiToken) return false;
+
+    const data = await userService.getPhaseSeeding(apiToken, currentPhase.id, forceReload);
+    if (!data || data.error || !data.phase) {
+      setSelectedPhase(currentPhase);
+      return false;
+    }
+
+    const updatedPhase = { ...currentPhase, seeds: data.phase.seeds };
+    setSelectedPhase(updatedPhase);
+    setPhases([updatedPhase]);
+    return true;
+  }, [apiToken, currentPhase, setPhases]);
+
   // Efecto original para cargar datos
   useEffect(() => {
     if (!tournament || !apiToken) {
@@ -97,17 +109,13 @@ export default function BracketViewPage() {
       return;
     }
 
-    const loadPhaseSeeding = async () => {
-      const data = await userService.getPhaseSeeding(apiToken, currentPhase.id);
-      if (!data || data.error || !data.phase) {
-        setSelectedPhase(currentPhase);
-        return;
-      }
+    const timeoutId = window.setTimeout(() => {
+      void loadPhaseSeeding();
+    }, 0);
 
-      setSelectedPhase({ ...currentPhase, seeds: data.phase.seeds });
-    };
-    void loadPhaseSeeding();
-  }, [tournament, apiToken, navigate, currentPhase]);
+    return () => window.clearTimeout(timeoutId);
+  }, [tournament, apiToken, navigate, currentPhase, loadPhaseSeeding]);
+
 
   // Actualiza el orden de seeds desde la lista draggable.
   const handleSeedsReordered = (updatedSeeds) => {
@@ -118,6 +126,27 @@ export default function BracketViewPage() {
     console.log('Fase actualizada con nuevo orden de seeds:', updatedPhase);
 
     setSaved(false);
+  };
+
+  const handleTournamentReload = async () => {
+    if (reloadingTournament) return;
+
+    setReloadingTournament(true);
+    try {
+      const reloaded = await loadPhaseSeeding(true);
+      if (reloaded) {
+        setSaved(false);
+        setNotificacion({ open: true, message: 'Torneo recargado correctamente', type: 'success' });
+        return;
+      }
+
+      setNotificacion({ open: true, message: 'No se pudo recargar el torneo', type: 'error' });
+    } catch (error) {
+      console.error('Error recargando torneo:', error);
+      setNotificacion({ open: true, message: 'No se pudo recargar el torneo', type: 'error' });
+    } finally {
+      setReloadingTournament(false);
+    }
   };
 
   // Guarda el borrador en disco (Tauri).
@@ -132,10 +161,12 @@ export default function BracketViewPage() {
       }
 
       setSaved(true);
-      mostrarAviso('Borrador guardado correctamente', 'success');
+      setNotificacion({ open: true, message: 'Borrador guardado correctamente', type: 'success' });
     } catch (error) {
       console.error('Error guardando borrador:', error);
-      mostrarAviso('No se pudo guardar el borrador', 'error');
+      setNotificacion({ open: true, message: 'No se pudo guardar el borrador', type: 'error' });
+    } finally {
+      setSaved(false);
     }
   };
 
@@ -167,11 +198,26 @@ export default function BracketViewPage() {
 
     console.log('Seed clickeada:', seed);
 
-    setH2hPlayers({ teamA, teamB });
+    // Intentamos buscar los Player IDs directamente en las semillas locales para ir rápido
+    const p1Seed = selectedPhase?.seeds?.find(s => String(s.seedId) === String(seedIdA));
+    const p2Seed = selectedPhase?.seeds?.find(s => String(s.seedId) === String(seedIdB));
+
+    const resolvedP1 = p1Seed?.playerId || null;
+    const resolvedP2 = p2Seed?.playerId || null;
+
+    setH2hPlayers({ p1_id: resolvedP1, p2_id: resolvedP2, teamA, teamB });
+    setActiveClash(null);
     setH2hError('');
     setH2hSets([]);
     setH2hPage(1);
     setMostrarModalH2H(true);
+
+    // Si ya tenemos los IDs resueltos localmente, buscamos el clash de forma instantánea
+    if (resolvedP1 && resolvedP2) {
+      const existingClash = await clashService.getClasheo(resolvedP1, resolvedP2);
+      console.log('Clash encontrado instantáneamente:', existingClash);
+      setActiveClash(existingClash);
+    }
 
     if (!apiToken) {
       setH2hError('No hay token de autenticacion para consultar H2H.');
@@ -185,8 +231,28 @@ export default function BracketViewPage() {
 
     setH2hLoading(true);
     try {
-      const sets = await getHeadToHeadMatches(apiToken, seedIdA, seedIdB, 50);
-      setH2hSets(sets);
+      const hasLocalIds = !!(resolvedP1 && resolvedP2);
+      const queryIdA = hasLocalIds ? resolvedP1 : seedIdA;
+      const queryIdB = hasLocalIds ? resolvedP2 : seedIdB;
+
+      // Al pasar `hasLocalIds` como 5º argumento, evitamos llamadas lentas de resolución
+      const result = await getHeadToHeadMatches(apiToken, queryIdA, queryIdB, 50, hasLocalIds);
+      setH2hSets(result.matches);
+      
+      // Si no teníamos los IDs locales inicialmente, guardamos los resueltos por la API
+      if (!hasLocalIds) {
+        setH2hPlayers(prev => ({
+          ...prev,
+          p1_id: result.p1Id,
+          p2_id: result.p2Id,
+        }));
+
+        if (result.p1Id && result.p2Id) {
+          const existingClash = await clashService.getClasheo(result.p1Id, result.p2Id);
+          console.log('Clash encontrado tras resolución H2H:', existingClash);
+          setActiveClash(existingClash);
+        }
+      }
     } catch (error) {
       console.error('Error cargando sets H2H:', error);
       setH2hError('No se pudieron cargar los sets.');
@@ -201,6 +267,15 @@ const uploadStartGG = async () => {
     'Esto modificará el torneo en la plataforma.',
     'Sí, subir',
     handleSeedPublish // Pasamos tu función original como callback
+  );
+};
+
+const reloadTournament = () => {
+  pedirConfirmacion(
+    'Recargar torneo',
+    'Se perderán los cambios no subidos.',
+    'Sí, recargar',
+    handleTournamentReload
   );
 };
 
@@ -225,6 +300,13 @@ const uploadStartGG = async () => {
           <h2 className="bracket-view__subtitle">{tournament.eventName}</h2>
         </div>
         <div className="bracket-view__actions">
+          <button
+            className="bracket-view__button bracket-view__button--secondary"
+            onClick={reloadTournament}
+            disabled={reloadingTournament}
+          >
+            <FaSyncAlt /> {reloadingTournament ? 'Recargando...' : 'Recargar torneo'}
+          </button>
           <button className="bracket-view__button bracket-view__button--secondary" onClick={() => navigate(`/torneo/${tournament.id}/borradores`)}>
             <FaHistory /> Ver borradores
           </button>
@@ -294,7 +376,38 @@ const uploadStartGG = async () => {
       <HeadToHeadModal
         open={mostrarModalH2H}
         onClose={() => setMostrarModalH2H(false)}
-        onAddClash={() => clashService.addClasheo({test: "test"})}
+        activeClash={activeClash}
+        onAddClash={async ({ reason, importance }) => {
+          if (!h2hPlayers.p1_id || !h2hPlayers.p2_id) {
+            setNotificacion({ open: true, message: 'No se puede guardar el clasheo: Faltan los IDs de los jugadores.', type: 'error' });
+            return;
+          }
+          try {
+            const nuevoClash = {
+              p1_id: h2hPlayers.p1_id,
+              p2_id: h2hPlayers.p2_id,
+              reason,
+              importance
+            };
+            await clashService.addClasheo(nuevoClash);
+            setActiveClash(nuevoClash);
+            setNotificacion({ open: true, message: 'Advertencia de clasheo agregada correctamente.', type: 'success' });
+          } catch (error) {
+            console.error('Error al agregar clasheo:', error);
+            setNotificacion({ open: true, message: 'No se pudo guardar la advertencia.', type: 'error' });
+          }
+        }}
+        onRemoveClash={async () => {
+          if (!h2hPlayers.p1_id || !h2hPlayers.p2_id) return;
+          try {
+            await clashService.removeClasheo(h2hPlayers.p1_id, h2hPlayers.p2_id);
+            setActiveClash(null);
+            setNotificacion({ open: true, message: 'Clasheo eliminado correctamente.', type: 'success' });
+          } catch (error) {
+            console.error('Error al eliminar clasheo:', error);
+            setNotificacion({ open: true, message: 'No se pudo eliminar el clasheo.', type: 'error' });
+          }
+        }}
         players={h2hPlayers}
         loading={h2hLoading}
         error={h2hError}
@@ -306,65 +419,3 @@ const uploadStartGG = async () => {
     </div>
   );
 }
-
-/* =====================================================================
- * 🛠️ GUÍA DE USO: COMPONENTES REUTILIZABLES (MODAL Y NOTIFICACIONES)
- * =====================================================================
- *
- * Estas dos herramientas sirven para lanzar avisos en pantalla sin 
- * tener que escribir el HTML (JSX) cada vez.
- *
- * ---------------------------------------------------------------------
- * 1️⃣ NOTIFICACIONES FLOTANTES (TOASTS)
- * ---------------------------------------------------------------------
- * Muestra un pequeño mensaje en la esquina que desaparece a los 3 segundos.
- * Ideal para confirmar que una acción silenciosa ha salido bien.
- *
- * ¿CÓMO USARLO?
- * Simplemente llama a la función `mostrarAviso(mensaje, tipo)` dentro
- * de cualquier otra función de tu componente.
- *
- * EJEMPLOS DE USO:
- *   // Ejemplo 1: Guardado exitoso (verde por defecto)
- *   const guardarDatos = () => {
- *     guardarEnBaseDeDatos();
- *     mostrarAviso('Datos guardados correctamente', 'success');
- *   };
- *
- *   // Ejemplo 2: Mostrar un error (rojo)
- *   const fallarDatos = () => {
- *     mostrarAviso('Error: No se pudo conectar al servidor', 'error');
- *   };
- *
- * ---------------------------------------------------------------------
- * 2️⃣ VENTANAS EMERGENTES DE CONFIRMACIÓN (MODALES)
- * ---------------------------------------------------------------------
- * Muestra una ventana en el centro de la pantalla bloqueando el resto
- * de la app. Tiene un botón de Cancelar y otro de Confirmar.
- * Ideal para acciones destructivas (borrar, sobreescribir, exportar).
- *
- * ¿CÓMO USARLO?
- * Llama a la función `pedirConfirmacion(titulo, texto, textoBoton, callback)`
- * donde "callback" es la función real que quieres que se ejecute SOLO
- * si el usuario pulsa el botón de confirmar.
- *
- * EJEMPLOS DE USO:
- *   // Paso A: Tienes la función peligrosa que quieres proteger
- *   const borrarJugador = () => {
- *     api.delete(jugadorId);
- *   };
- *
- *   // Paso B: Creas una función intermedia que lanza el modal
- *   const intentarBorrarJugador = () => {
- *     pedirConfirmacion(
- *       '⚠️ Borrar Jugador',                      // 1. Título grande
- *       '¿Estás seguro de que quieres borrarlo?', // 2. Texto explicativo
- *       'Sí, borrar',                             // 3. Texto del botón rojo
- *       borrarJugador                             // 4. Función a ejecutar si dice "Sí"
- *     );
- *   };
- *
- *   // Paso C: En tu botón HTML (JSX), llamas a la intermedia:
- *   // <button onClick={intentarBorrarJugador}>Borrar</button>
- * =====================================================================
- */

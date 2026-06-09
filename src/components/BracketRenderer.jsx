@@ -36,14 +36,16 @@ const SeedsList = styled.div`
 `;
 
 const SeedItem = styled.div`
-  color: var(--bracket-seed-text, #fff);
+  color: var(--bracket-seed-text, #fff) !important;
   width: 100%;
-  background-color: var(--bracket-seed-bg, #1a1d2e);
+  background-color: ${(props) => props.$hasClash ? 'rgba(220, 38, 38, 0.4) !important' : 'var(--bracket-seed-bg, #1a1d2e)'};
   padding: 0;
   border-radius: 0.2em;
-  box-shadow: 0 2px 4px -2px var(--bracket-seed-shadow, #111630);
+  box-shadow: ${(props) => props.$hasClash ? '0 0 12px rgba(239, 68, 68, 0.6) !important' : '0 2px 4px -2px var(--bracket-seed-shadow, #111630)'};
+  border: ${(props) => props.$hasClash ? '1px solid #ef4444 !important' : '1px solid transparent'};
   text-align: center;
   position: relative;
+  transition: all 0.2s ease;
 `;
 
 const SeedTeam = styled.div`
@@ -170,6 +172,7 @@ const Seed = styled.div`
   }
 `;
 
+
 const renderTitle = (title) => <RoundTitle>{title}</RoundTitle>;
 
 const renderSeed = ({ seed, breakpoint, isMiddleOfTwoSided }) => {
@@ -211,7 +214,7 @@ const SingleElimination = ({
     </Fragment>
   );
 
-  const data = rounds.map((round, roundIdx) => (
+const data = rounds.map((round, roundIdx) => (
     <Round key={round.title} className={roundClassName} mobileBreakpoint={mobileBreakpoint}>
       {round.title && roundTitleComponent(round.title, roundIdx)}
       <SeedsList>

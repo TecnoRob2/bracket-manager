@@ -4,17 +4,22 @@
 // Brackets are seeded using standard tournament seeding (1 vs N, etc.)
 // and winners are predicted by lower seed number (better seed wins).
 //
+// General display rule:
+//  Every generated set must show the lower seed number in the top slot.
+//  Keep this as a display-only rule so internal bracket positions can still
+//  drive losers bracket routing correctly.
+//
 // Double Elimination LB pairing rules (matches start.gg behavior):
 //
 //  LB R1 (minor) — WB R1 losers only, no survivors yet:
-//    Cross-pair: split in half, reverse second half, interleave.
-//    Ensures opposite sides of the WB face each other.
-//    e.g. losers [8,5,7,6] → pairs [8v6, 5v7]
+//    Keep the WB loser order and pair sequentially.
+//    e.g. losers [8,5,7,6] → pairs [8v5, 7v6]
 //
 //  LB major rounds — WB losers drop in against LB survivors:
-//    Straight pair: wbLosers[i] faces lbSurvivors[i].
+//    Pair by bracket position, but avoid immediate/known rematches where a
+//    different positional assignment is available (matches start.gg behavior).
 //    If WB losers outnumber LB survivors, extra WB losers get BYEs.
-//    e.g. wbLosers [4,3], lbSurvivors [6,5] → pairs [4v6, 3v5]
+//    e.g. wbLosers [4,3], lbSurvivors [5,6] → pairs [3v5, 4v6]
 //
 //  LB minor rounds — LB major winners play each other:
 //    Sequential pairing of major round winners.
@@ -96,6 +101,38 @@ function predictWinner(teamA, teamB) {
 }
 
 /**
+ * Carries first-loss history through the simulated lower bracket so later
+ * LB major rounds can avoid pairing a player into a same-bracket rematch.
+ *
+ * @param {Object|null} loser
+ * @param {Object|null} winner
+ * @returns {Object|null}
+ */
+function markLossTo(loser, winner) {
+  if (!loser || !winner) return loser;
+
+  return {
+    ...loser,
+    lostToSeedNums: [...(loser.lostToSeedNums ?? []), winner.seedNum],
+  };
+}
+
+/**
+ * Orders a set for display. Internal bracket slot order must stay untouched,
+ * but visually the better seed is always shown on top.
+ *
+ * @param {Object|null} teamA
+ * @param {Object|null} teamB
+ * @returns {[Object|null, Object|null]}
+ */
+function orderSetForDisplay(teamA, teamB) {
+  if (teamA && !teamB) return [teamA, teamB];
+  if (!teamA && teamB) return [teamB, teamA];
+  if (teamA && teamB && teamB.seedNum < teamA.seedNum) return [teamB, teamA];
+  return [teamA, teamB];
+}
+
+/**
  * Formats a participant for display inside a bracket slot.
  *
  * @param {Object|null} participant
@@ -126,17 +163,19 @@ function simulateRound(slots, roundIdPrefix, collectLosers = false) {
     const teamA = slots[i] ?? null;
     const teamB = slots[i + 1] ?? null;
     const winner = predictWinner(teamA, teamB);
+    const [displayTeamA, displayTeamB] = orderSetForDisplay(teamA, teamB);
 
     roundSeeds.push({
       id: `${roundIdPrefix}-m${i / 2 + 1}`,
-      teams: [formatTeamSlot(teamA), formatTeamSlot(teamB)],
+      teams: [formatTeamSlot(displayTeamA), formatTeamSlot(displayTeamB)],
     });
 
     winners.push(winner);
 
     if (collectLosers) {
       // Only collect a loser when both slots are real (no BYE match)
-      losers.push(teamA && teamB ? (winner === teamA ? teamB : teamA) : null);
+      const loser = teamA && teamB ? (winner === teamA ? teamB : teamA) : null;
+      losers.push(markLossTo(loser, winner));
     }
   }
 
@@ -163,50 +202,188 @@ function addRound(slots, idPrefix, title, roundsArray) {
 // ---------------------------------------------------------------------------
 
 /**
- * Cross-pairs an array by splitting in half, reversing the second half,
- * then interleaving: [top[0], bot_rev[0], top[1], bot_rev[1], ...]
+ * Builds the opening LB lanes from WB R1 loser positions. Complete lanes are
+ * rendered as LB R1 sets; single-player lanes advance silently as BYEs.
  *
- * Used only for LB R1 so opposite WB halves face each other.
- *
- * @param {Object[]} losers
- * @returns {Object[]}
+ * @param {(Object|null)[]} losers
+ * @returns {{ slots: Object[], laneEntries: Object[] }}
  */
-function crossPairForLbR1(losers) {
-  const half = Math.floor(losers.length / 2);
-  const top = losers.slice(0, half);
-  const bottomReversed = [...losers.slice(half)].reverse();
-  const result = [];
+function buildOpeningLbRound(losers) {
+  const slots = [];
+  const laneEntries = [];
 
-  for (let i = 0; i < Math.max(top.length, bottomReversed.length); i++) {
-    if (top[i]) result.push(top[i]);
-    if (bottomReversed[i]) result.push(bottomReversed[i]);
+  for (let i = 0; i < losers.length; i += 2) {
+    const teamA = losers[i] ?? null;
+    const teamB = losers[i + 1] ?? null;
+
+    if (teamA && teamB) {
+      slots.push(teamA, teamB);
+      laneEntries.push({ type: 'match' });
+      continue;
+    }
+
+    if (teamA || teamB) {
+      laneEntries.push({ type: 'bye', participant: teamA ?? teamB });
+    }
   }
 
-  return result;
+  return { slots, laneEntries };
 }
 
 /**
- * Builds slots for an LB major round by pairing each WB loser at index i
- * with the LB survivor at index i (or null/BYE if there is no survivor there).
+ * Merges played LB R1 winners back into the full opening lane order.
  *
- * This straight positional pairing is correct because both arrays share the
- * same bracket-tree positional index. When WB losers outnumber LB survivors
- * (e.g. 24-player bracket where BYEs created fewer LB R1 matches), the extra
- * WB losers automatically receive BYEs and advance.
+ * @param {Object[]} laneEntries
+ * @param {Object[]} matchWinners
+ * @returns {Object[]}
+ */
+function buildOpeningLbSurvivors(laneEntries, matchWinners) {
+  let winnerIndex = 0;
+
+  return laneEntries
+    .map((entry) => {
+      if (entry.type === 'match') {
+        const winner = matchWinners[winnerIndex] ?? null;
+        winnerIndex += 1;
+        return winner;
+      }
+
+      return entry.participant ?? null;
+    })
+    .filter(Boolean);
+}
+
+/**
+ * Builds slots for an LB major round by pairing incoming WB losers with LB
+ * survivors while avoiding rematches against the winner who originally sent
+ * the survivor to the lower bracket.
+ *
+ * The first preference is still positional: candidate WB losers closest to
+ * the survivor index are tried first. If a no-rematch assignment exists, it is
+ * used; otherwise the function falls back to straight positional pairing.
+ *
+ * @param {Object[]} wbLosers
+ * @param {Object[]} lbSurvivors
+ * @param {{ usePartialDropPattern?: boolean }} options
+ * @returns {(Object|null)[]}
+ */
+function buildMajorRoundSlots(wbLosers, lbSurvivors, options = {}) {
+  if (lbSurvivors.length === 0) {
+    return wbLosers.flatMap((loser) => [loser, null]);
+  }
+
+  if (options.usePartialDropPattern || lbSurvivors.length < wbLosers.length) {
+    return buildPartialMajorRoundSlots(wbLosers, lbSurvivors);
+  }
+
+  const assignedWbIndexes = findNoRematchMajorAssignment(wbLosers, lbSurvivors);
+  const slots = [];
+
+  for (let i = 0; i < lbSurvivors.length; i++) {
+    const wbLoserIndex = assignedWbIndexes[i] ?? i;
+    slots.push(wbLosers[wbLoserIndex] ?? null);
+    slots.push(lbSurvivors[i]);
+  }
+
+  for (let i = 0; i < wbLosers.length; i++) {
+    if (!assignedWbIndexes.includes(i)) {
+      slots.push(wbLosers[i]);
+      slots.push(null);
+    }
+  }
+
+  return slots;
+}
+
+/**
+ * Handles incomplete opening WB rounds. The first WB R1 losers are held until
+ * the next drop and inserted into the reversed WB R2 loser order:
+ *   WB R2 losers [8,5,7,6] -> carrier order [6,7,5,8]
+ *   WB R1 losers [9,10]    -> [6v9, 7vBYE, 5v10, 8vBYE]
  *
  * @param {Object[]} wbLosers
  * @param {Object[]} lbSurvivors
  * @returns {(Object|null)[]}
  */
-function buildMajorRoundSlots(wbLosers, lbSurvivors) {
-  const slots = [];
+function buildPartialMajorRoundSlots(wbLosers, lbSurvivors) {
+  const carrierLosers = [...wbLosers].reverse();
+  const injectedLosers = [...lbSurvivors].sort((a, b) => a.seedNum - b.seedNum);
+  const placementIndexes = buildAlternatingPlacementIndexes(carrierLosers.length);
+  const slotPairs = carrierLosers.map((loser) => [loser, null]);
 
-  for (let i = 0; i < wbLosers.length; i++) {
-    slots.push(wbLosers[i]);
-    slots.push(lbSurvivors[i] ?? null); // null = BYE when no survivor at this position
+  for (let i = 0; i < injectedLosers.length; i++) {
+    const targetIndex = placementIndexes[i] ?? i;
+    if (slotPairs[targetIndex]) {
+      slotPairs[targetIndex] = targetIndex === 0 || targetIndex % 2 === 1
+        ? [slotPairs[targetIndex][0], injectedLosers[i]]
+        : [injectedLosers[i], slotPairs[targetIndex][0]];
+    }
   }
 
-  return slots;
+  return slotPairs.flat();
+}
+
+/**
+ * Places injected players into alternating lanes recursively so future minor rounds 
+ * keep the expected pair order across any bracket size.
+ *
+ * @param {number} length
+ * @returns {number[]}
+ */
+function buildAlternatingPlacementIndexes(length) {
+  if (length <= 1) return [0];
+  if (length === 2) return [0, 1];
+
+  const half = buildAlternatingPlacementIndexes(length / 2);
+  const left = half.map((x) => x * 2);
+  const right = [...left].map((x) => x + 1).reverse();
+
+  return [...left, ...right];
+}
+
+/**
+ * Finds a survivor-indexed assignment of WB losers that avoids rematches.
+ *
+ * @param {Object[]} wbLosers
+ * @param {Object[]} lbSurvivors
+ * @returns {number[]}
+ */
+function findNoRematchMajorAssignment(wbLosers, lbSurvivors) {
+  const assignment = Array(lbSurvivors.length).fill(null);
+  const usedWbIndexes = new Set();
+
+  const canPair = (wbLoser, lbSurvivor) => {
+    const lostToSeedNums = lbSurvivor?.lostToSeedNums ?? [];
+    return !lostToSeedNums.includes(wbLoser?.seedNum);
+  };
+
+  const solve = (survivorIndex) => {
+    if (survivorIndex >= lbSurvivors.length) return true;
+
+    const candidates = wbLosers
+      .map((wbLoser, index) => ({ wbLoser, index }))
+      .filter(({ index }) => !usedWbIndexes.has(index))
+      .filter(({ wbLoser }) => canPair(wbLoser, lbSurvivors[survivorIndex]))
+      .sort((a, b) => (
+        Math.abs(a.index - survivorIndex) - Math.abs(b.index - survivorIndex)
+      ));
+
+    for (const candidate of candidates) {
+      assignment[survivorIndex] = candidate.index;
+      usedWbIndexes.add(candidate.index);
+
+      if (solve(survivorIndex + 1)) return true;
+
+      usedWbIndexes.delete(candidate.index);
+      assignment[survivorIndex] = null;
+    }
+
+    return false;
+  };
+
+  return solve(0)
+    ? assignment
+    : lbSurvivors.map((_, index) => index).filter((index) => index < wbLosers.length);
 }
 
 // ---------------------------------------------------------------------------
@@ -280,8 +457,7 @@ function buildDoubleEliminationData(phaseSeeds) {
       seeds: roundSeeds,
     });
 
-    // Store only real losers (no BYE matches)
-    wbLosersByRound.push(losers.filter(Boolean));
+    wbLosersByRound.push(losers);
     currentWbParticipants = winners.filter(Boolean);
     wbRoundIndex += 1;
   }
@@ -291,27 +467,50 @@ function buildDoubleEliminationData(phaseSeeds) {
   // --- Losers Bracket ---
   let lbSurvivors = [];
   let lbRoundIndex = 1;
+  let usePartialDropPattern = false;
 
   for (let i = 0; i < wbLosersByRound.length; i++) {
-    const incomingWbLosers = wbLosersByRound[i];
+    const incomingWbLosers = wbLosersByRound[i].filter(Boolean);
     const isLastDrop = i === wbLosersByRound.length - 1;
 
     if (i === 0) {
-      // LB R1 minor: WB R1 losers play among themselves, cross-paired so
-      // opposite WB halves face each other (avoids rematches).
-      if (incomingWbLosers.length >= 2) {
-        const slots = crossPairForLbR1(incomingWbLosers);
-        lbSurvivors = addRound(slots, `lb-r${lbRoundIndex}`, `Losers R${lbRoundIndex}`, loserRounds);
-        lbRoundIndex += 1;
-      } else {
+      // LB R1 minor: WB R1 losers play among themselves in positional order.
+      const nextWbLosers = wbLosersByRound[i + 1] ?? [];
+      const shouldWaitForNextDrop = (
+        incomingWbLosers.length > 0
+        && incomingWbLosers.length <= nextWbLosers.length
+      );
+
+      if (shouldWaitForNextDrop) {
         lbSurvivors = incomingWbLosers;
+        usePartialDropPattern = true;
+      } else {
+        const { slots, laneEntries } = buildOpeningLbRound(wbLosersByRound[i]);
+
+        if (slots.length > 0) {
+          const matchWinners = addRound(
+            slots,
+            `lb-r${lbRoundIndex}`,
+            `Losers R${lbRoundIndex}`,
+            loserRounds,
+          );
+
+          lbSurvivors = buildOpeningLbSurvivors(laneEntries, matchWinners);
+          lbRoundIndex += 1;
+        } else {
+          lbSurvivors = buildOpeningLbSurvivors(laneEntries, []);
+        }
       }
       continue;
     }
 
     // LB major round: WB losers drop in and face LB survivors at the same
     // positional slot. Extra WB losers (no LB survivor at that slot) get BYEs.
-    const majorSlots = buildMajorRoundSlots(incomingWbLosers, lbSurvivors);
+    const majorSlots = buildMajorRoundSlots(
+      incomingWbLosers,
+      lbSurvivors,
+      { usePartialDropPattern },
+    );
     const majorWinners = addRound(
       majorSlots,
       `lb-r${lbRoundIndex}`,
@@ -319,6 +518,7 @@ function buildDoubleEliminationData(phaseSeeds) {
       loserRounds,
     );
     lbRoundIndex += 1;
+    usePartialDropPattern = false;
 
     // LB minor round: major winners play each other sequentially.
     // Skipped on the last WB drop — that winner goes straight to Grand Final.
@@ -339,14 +539,19 @@ function buildDoubleEliminationData(phaseSeeds) {
 
   // --- Grand Final ---
   if (winnerChampion || loserChampion) {
+    const [displayWinnerChampion, displayLoserChampion] = orderSetForDisplay(
+      winnerChampion,
+      loserChampion,
+    );
+
     finalsRounds.push({
       title: 'Grand Final',
       seeds: [
         {
           id: 'gf-1',
           teams: [
-            { name: winnerChampion?.name ?? 'TBD', seedId: winnerChampion?.seedId ?? null },
-            { name: loserChampion?.name ?? 'TBD', seedId: loserChampion?.seedId ?? null },
+            formatTeamSlot(displayWinnerChampion),
+            formatTeamSlot(displayLoserChampion),
           ],
         },
       ],

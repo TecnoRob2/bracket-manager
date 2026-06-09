@@ -70,10 +70,10 @@ const QUERY_SETS_PAGE = `
   }
 `;
 
-export async function getHeadToHeadMatches(apiToken, id1, id2, searchRange = 100) {
+export async function getHeadToHeadMatches(apiToken, id1, id2, searchRange = 100, isPlayerId = false) {
     try {
         let p1GlobalId = id1;
-        let p2PlayerId = null;
+        let p2PlayerId = id2;
 
         const resolveId = async (id) => {
             if (/[a-z]/i.test(String(id))) {
@@ -111,21 +111,28 @@ export async function getHeadToHeadMatches(apiToken, id1, id2, searchRange = 100
             return null;
         };
 
-        const p1Info = await resolveId(id1);
-        if (p1Info) {
-            p1GlobalId = p1Info.playerId;
-            console.log(`DEBUG: Jugador 1 -> ${p1Info.tag} (PlayerID: ${p1GlobalId})`);
-        }
+        if (isPlayerId) {
+            // Si ya son PlayerIDs, los asignamos directamente omitiendo las llamadas lentas
+            p1GlobalId = id1;
+            p2PlayerId = id2;
+            console.log(`DEBUG: Usando PlayerIDs directos -> P1: ${p1GlobalId}, P2: ${p2PlayerId}`);
+        } else {
+            const p1Info = await resolveId(id1);
+            if (p1Info) {
+                p1GlobalId = p1Info.playerId;
+                console.log(`DEBUG: Jugador 1 -> ${p1Info.tag} (PlayerID: ${p1GlobalId})`);
+            }
 
-        const p2Info = await resolveId(id2);
-        if (p2Info) {
-            p2PlayerId = p2Info.playerId;
-            console.log(`DEBUG: Jugador 2 -> ${p2Info.tag} (PlayerID: ${p2PlayerId})`);
+            const p2Info = await resolveId(id2);
+            if (p2Info) {
+                p2PlayerId = p2Info.playerId;
+                console.log(`DEBUG: Jugador 2 -> ${p2Info.tag} (PlayerID: ${p2PlayerId})`);
+            }
         }
 
         if (!p1GlobalId || !p2PlayerId) {
           console.log("DEBUG: No se pudo resolver el PlayerID de uno de los jugadores.");
-          return [];
+          return { matches: [], p1Id: p1GlobalId  || null, p2Id: p2PlayerId || null };
         }
 
         const perPage = 50;
@@ -152,7 +159,7 @@ export async function getHeadToHeadMatches(apiToken, id1, id2, searchRange = 100
 
           if (response.errors || !response.data?.player?.sets) {
             console.log("DEBUG: Error en la respuesta de sets:", JSON.stringify(response.errors));
-            return [];
+            return { matches: [], p1Id: p1GlobalId || null, p2Id: p2PlayerId || null };
           }
 
           const sets = response.data.player.sets.nodes || [];
@@ -190,7 +197,7 @@ export async function getHeadToHeadMatches(apiToken, id1, id2, searchRange = 100
           page += 1;
         }
         
-        return matches.map(set => {
+        const mappedMatches = matches.map(set => {
           const slotA = set.slots.find(slot => slotHasPlayer(slot, p1GlobalId));
           const slotB = set.slots.find(slot => slotHasPlayer(slot, p2PlayerId));
 
@@ -217,8 +224,9 @@ export async function getHeadToHeadMatches(apiToken, id1, id2, searchRange = 100
             winnerSide,
           };
         });
+        return { matches: mappedMatches, p1Id: p1GlobalId || null, p2Id: p2PlayerId || null };
     } catch (error) {
         console.error('Error en getHeadToHeadMatches:', error);
-        return [];
+        return { matches: [], p1Id: null, p2Id: null };
     }
 }

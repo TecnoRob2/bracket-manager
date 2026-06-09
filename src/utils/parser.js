@@ -88,7 +88,8 @@ export function parsePhasesSeeding(fetchData, phaseId) {
         .map(seed => ({
             seedId: seed.id,
             seedNum: seed.seedNum,
-            gamerTag: seed.players[0]?.gamerTag
+            gamerTag: seed.players[0]?.gamerTag,
+            playerId: seed.players[0]?.id,
         }))
     }
 }

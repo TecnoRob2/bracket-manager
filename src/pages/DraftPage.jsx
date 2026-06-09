@@ -18,29 +18,41 @@ export default function BorradoresPage() {
 
   const [drafts, setDrafts] = useState([]);
   const [errors, setErrors] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadDrafts = async () => {
+    if (!dirPath) {
+      setDrafts([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log('Cargando borradores para el directorio:', dirPath);
+      const result = await draftService.listSeedingDrafts(dirPath);
+      console.log('Resultado de listSeedingDrafts:', result);
+      setDrafts(result.drafts);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error al cargar borradores:', error);
+      setErrors(error);
+      setDrafts([]);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadDrafts = async () => {
-      if (!dirPath) {
-        setDrafts([]);
-        return;
-      }
-
-      try {
-        console.log('Cargando borradores para el directorio:', dirPath);
-        const result = await draftService.listSeedingDrafts(dirPath);
-        console.log('Resultado de listSeedingDrafts:', result);
-        setDrafts(result.drafts);
-        
-      } catch (error) {
-        console.error('Error al cargar borradores:', error);
-        setErrors(error);
-        setDrafts([]);
-      }
-    };
     loadDrafts();
-
   }, [dirPath]);
+
+  if (loading) {
+    return (
+      <div>
+        <h2>Cargando...</h2>
+        <LoadingIndicator />
+      </div>
+    );
+  }
 
   return (
     <div className="bracket-page">
@@ -51,8 +63,8 @@ export default function BorradoresPage() {
           <h1>Borradores (Torneo #{id})</h1>
         </div>
         <div className="bp-header-buttons">
-          <button 
-            className="btn-cambiar-token" 
+          <button
+            className="btn-cambiar-token"
             onClick={() => navigate(`/torneo/${id}/bracket`)}
             style={{ backgroundColor: '#555' }} // Cambiamos el color para que sea un botón de "Volver"
           >
@@ -72,9 +84,9 @@ export default function BorradoresPage() {
           </p>
         ) : (
           drafts.map((draft) => (
-            <div 
-              key={draft.name} 
-              className="bp-card" 
+            <div
+              key={draft.name}
+              className="bp-card"
               style={{cursor: 'pointer'}}
               // Al clicar un borrador, volvemos al bracket pasándole el ID del borrador (lo programaremos más adelante)
               onClick={() => console.log(`Cargando borrador ${draft.name}...`)}
@@ -82,11 +94,11 @@ export default function BorradoresPage() {
               <div className="bp-card-info">
                 <h2>{draft.name}</h2>
               </div>
-              
+
               <div className="bp-card-actions">
-                <button 
-                  className="btn-icon" 
-                  aria-label="Restaurar" 
+                <button
+                  className="btn-icon"
+                  aria-label="Restaurar"
                   title="Cargar en el Bracket"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -95,9 +107,9 @@ export default function BorradoresPage() {
                 >
                   🔄
                 </button>
-                <button 
-                  className="btn-icon" 
-                  aria-label="Borrar" 
+                <button
+                  className="btn-icon"
+                  aria-label="Borrar"
                   title="Eliminar borrador"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -114,3 +126,4 @@ export default function BorradoresPage() {
     </div>
   );
 }
+

@@ -9,6 +9,8 @@ import {
 } from './BracketRenderer';
 
 import './BracketTabs.css';
+import { clashStore } from '../store/clashStore';
+import { tournamentStore } from '../store/tournamentStore';
 
 export default function BracketTabs({
   winnerRounds = [],
@@ -27,6 +29,12 @@ export default function BracketTabs({
   const emptyMessage = isDoubleElimination
     ? 'No hay suficientes jugadores para armar loser bracket.'
     : 'Este torneo no tiene loser bracket.';
+
+  const clasheos = clashStore((state) => state.clasheos);
+  const tournament = tournamentStore((state) => state.tournament);
+  const phase_idx = tournamentStore((state) => state.phase_idx);
+  const currentPhase = tournament?.phases?.[phase_idx] ?? null;
+  const phaseSeeds = currentPhase?.seeds ?? [];
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -110,6 +118,27 @@ export default function BracketTabs({
     const teamA = seed?.teams?.[0]?.name || '-----------';
     const teamB = seed?.teams?.[1]?.name || '-----------';
 
+    // Recuperamos los seedIds del set que se está evaluando visualmente
+    const seedIdA = seed?.teams?.[0]?.seedId;
+    const seedIdB = seed?.teams?.[1]?.seedId;
+
+    // Buscamos los PlayerIDs reales correspondientes usando las semillas de la fase
+    const p1Seed = phaseSeeds.find((s) => String(s.seedId) === String(seedIdA));
+    const p2Seed = phaseSeeds.find((s) => String(s.seedId) === String(seedIdB));
+    const p1_id = p1Seed?.playerId;
+    const p2_id = p2Seed?.playerId;
+
+    // Comprobamos si existe un clasheo registrado para esta pareja de jugadores
+    const hasClash = p1_id && p2_id && clasheos.some(
+      (c) =>
+        (String(c.p1_id) === String(p1_id) && String(c.p2_id) === String(p2_id)) ||
+        (String(c.p1_id) === String(p2_id) && String(c.p2_id) === String(p1_id))
+    );
+
+    if (hasClash) {
+      console.log(`[BracketTabs H2H] !Clasheo detectado!: ${teamA} vs ${teamB}`);
+    }
+
     return (
       <Wrapper
         mobileBreakpoint={breakpoint}
@@ -117,6 +146,7 @@ export default function BracketTabs({
       >
         <SeedItem
           className="bv-bracket-seed-item"
+          $hasClash={hasClash}
           onPointerDown={(event) => event.stopPropagation()}
           onPointerUp={(event) => {
             event.stopPropagation();
