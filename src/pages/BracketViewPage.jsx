@@ -20,6 +20,14 @@ import { FaArrowLeft, FaSave, FaFileExport, FaMoon, FaSun, FaHistory, FaSyncAlt 
 
 import './BracketViewPage.css';
 import { clashService } from '../services/clashService';
+
+// Función para limpiar nombres de seeds removiendo el formato "6 | Name"
+const cleanSeedName = (fullName) => {
+  if (!fullName) return fullName;
+  const match = String(fullName).match(/^(\d+)\s*\|\s*(.+)$/);
+  return match ? match[2].trim() : fullName;
+};
+
 export default function BracketViewPage() {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
@@ -386,6 +394,8 @@ const reloadTournament = () => {
             const nuevoClash = {
               p1_id: h2hPlayers.p1_id,
               p2_id: h2hPlayers.p2_id,
+              p1_name: cleanSeedName(h2hPlayers.teamA) || `Jugador ${h2hPlayers.p1_id}`,
+              p2_name: cleanSeedName(h2hPlayers.teamB) || `Jugador ${h2hPlayers.p2_id}`,
               reason,
               importance
             };

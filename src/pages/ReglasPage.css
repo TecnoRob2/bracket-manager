@@ -3,144 +3,387 @@
   width: 100%;
   min-height: 100dvh;
   margin: 0;
-  padding: 1.25rem;
+  padding: 2.5rem 1.25rem 1.25rem 1.25rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  background: var(--bg-color, #fafafa);
 }
 
-/* --- HEADER --- */
-.rp-header {
+/* ========== HEADER ========== */
+.reglas-page__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
-.rp-title-group {
+.reglas-page__title-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 
-.rp-title-group h1 {
-  font-size: 1.20rem;
+.reglas-page__title {
+  font-size: 2rem;
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-color);
 }
 
-.rp-icon-ban {
-  font-size: 1.8rem;
-  color: #ff4d4d;
+.reglas-page__icon-warning {
+  font-size: 2.2rem;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 2px #ff9800);
 }
 
-.rp-header-buttons {
+.reglas-page__header-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  flex-direction: row;
 }
-.btn-cambiar-token {
-  background-color: #ff9800; /* Color naranja */
+
+.reglas-page__button {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+
+.reglas-page__button--logout {
+  background-color: #ff3333;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(255, 51, 51, 0.18);
+}
+
+.reglas-page__button--logout:hover {
+  background-color: #cc2a2a;
+  transform: translateY(-1px);
+}
+
+.reglas-page__button--back {
+  background-color: #ff9800;
   color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(255, 152, 0, 0.18);
 }
 
-.btn-cambiar-token:hover {
-  background-color: #e68a00; /* Naranja un poco más oscuro al pasar el ratón */
-}
-.btn-torneos {
-  background-color: #00ff00;
-  color: black;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  cursor: pointer;
+.reglas-page__button--back:hover {
+  background-color: #e68a00;
+  transform: translateY(-1px);
 }
 
-.btn-incluir {
-  background-color: #ff0000;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  cursor: pointer;
+.reglas-page__button--theme {
+  background: none;
+  color: var(--text-color, #333);
+  box-shadow: none;
 }
 
-/* --- TARJETAS (CARDS) --- */
-.rp-list {
+.reglas-page__button--theme:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.dark .reglas-page__button--theme:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ========== CONTENT ========== */
+.reglas-page__content {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 1.25rem;
+  min-width: 0;
 }
 
-.rp-card {
+.reglas-page__message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  font-size: 1.1rem;
+  color: var(--text-color);
+  opacity: 0.6;
+}
+
+.reglas-page__message--error {
+  background-color: #ffe0e0;
+  color: #d32f2f;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #d32f2f;
+  font-weight: 500;
+  min-height: auto;
+  opacity: 1;
+}
+
+body.dark .reglas-page__message--error {
+  background-color: #5f2c2c;
+  color: #ffb0b0;
+}
+
+.reglas-page__message--loading {
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.reglas-page__message--empty {
+  opacity: 0.5;
+}
+
+/* ========== LIST ========== */
+.reglas-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reglas-page__card {
   display: flex;
   width: 100%;
-  max-width: 100%;
   justify-content: space-between;
+  align-items: center;
   box-sizing: border-box;
   background: var(--card-bg, #ffffff);
-  border: 1.5px solid #ff4d4d;
+  border: 1.5px solid #ff9800;
   border-radius: 12px;
   padding: 14px 18px;
-  align-items: center;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
-.rp-card-info {
+.reglas-page__card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 152, 0, 0.15);
+  border-color: #e68a00;
+}
+
+.reglas-page__card-info {
   display: flex;
   align-items: center;
   gap: 30px;
   flex: 1;
   min-width: 0;
-  margin-left:150px;
   color: var(--text-color);
 }
 
-.rp-players {
+.reglas-page__card-players {
   display: flex;
-  flex-direction: column;
-  min-width: 100px;
-}
-
-.player-name {
-  font-size: 1.1rem;
-  padding: 4px 0;
-  text-align: center;
-}
-
-.player-divider {
-  border: 0;
-  height: 1px;
-  background: var(--text-color);
-  margin: 2px 0;
-  width: 100%;
-}
-
-.rp-card-details {
-  font-size: 0.8rem;
-  color: var(--text-color);
-}
-
-.rp-card-details p {
-  margin: 3px 0;
-}
-
-/* --- BOTONES DE LA TARJETA --- */
-.rp-card-actions {
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 12px;
+  min-width: 200px;
+  flex-wrap: wrap;
+}
+
+.reglas-page__player-name {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  background: rgba(255, 152, 0, 0.1);
+  border-radius: 6px;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.reglas-page__player-vs {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color);
+  opacity: 0.6;
+  padding: 0 4px;
+}
+
+.reglas-page__card-details {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reglas-page__detail-item {
+  margin: 0;
+  color: var(--text-color);
+  opacity: 0.9;
+}
+
+.reglas-page__detail-item strong {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* ========== CARD ACTIONS ========== */
+.reglas-page__card-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.reglas-page__button-action {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: var(--text-color);
+}
+
+.reglas-page__button-action:hover {
+  border-color: #999;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.dark .reglas-page__button-action:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.reglas-page__button-action--delete {
+  color: #d32f2f;
+  border-color: #d32f2f;
+}
+
+.reglas-page__button-action--delete:hover {
+  background-color: rgba(211, 47, 47, 0.1);
+  border-color: #b71c1c;
+}
+
+/* ========== MODAL ========== */
+.reglas-page__modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.reglas-page__modal-content {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 450px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+}
+
+.reglas-page__modal-title {
+  font-size: 1.4rem;
+  margin: 0 0 0.8rem 0;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.reglas-page__modal-message {
+  font-size: 1rem;
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color);
+  line-height: 1.4;
+}
+
+.reglas-page__modal-actions {
+  display: flex;
+  justify-content: space-around;
+  gap: 15px;
+}
+
+.reglas-page__modal-cancel {
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: transparent;
+  color: var(--text-color);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.reglas-page__modal-cancel:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: #999;
+}
+
+body.dark .reglas-page__modal-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.reglas-page__modal-confirm {
+  background-color: #d32f2f;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.reglas-page__modal-confirm:hover {
+  background-color: #b71c1c;
+  transform: translateY(-1px);
+}
+
+/* ========== DARK THEME ========== */
+body.dark .reglas-page {
+  background: var(--bg-color, #1a1a1a);
+}
+
+body.dark .reglas-page__card {
+  border-color: #e68a00;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .reglas-page {
+    padding: 1.25rem 1rem 1rem 1rem;
+  }
+
+  .reglas-page__title {
+    font-size: 1.5rem;
+  }
+
+  .reglas-page__card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .reglas-page__card-info {
+    width: 100%;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .reglas-page__card-players {
+    min-width: auto;
+  }
+
+  .reglas-page__card-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .reglas-page__modal-content {
+    max-width: calc(100% - 2rem);
+    padding: 1.5rem;
+  }
 }

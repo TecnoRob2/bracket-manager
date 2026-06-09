@@ -49,6 +49,16 @@ export async function ensureFile(filePath, content = "") {
       console.log('Archivo ya existe:', fullPath);
       return fullPath;
     }
+    
+    // Asegurar que el directorio padre existe
+    const dirPath = filePath.split(/[\\/]/).slice(0, -1).join('/');
+    if (dirPath) {
+      await mkdir(dirPath, {
+        baseDir: BaseDirectory.AppData,
+        recursive: true
+      });
+    }
+    
     await writeTextFile(filePath, content, {
       baseDir: BaseDirectory.AppData,
     });

@@ -1,16 +1,78 @@
-# React + Vite
+# Bracket Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación de escritorio para gestionar brackets, seeding y torneos integrados con start.gg. Construida con React, Vite y Tauri.
 
-Currently, two official plugins are available:
+## Características Principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Gestión de Torneos**: Consulta y administra tus torneos desde start.gg
+- **Visualización de Brackets**: Ve la estructura completa de tus torneos y fases
+- **Seeding Personalizado**: Reordena manualmente la siembra (seeding) de jugadores en las fases
+- **Borradores**: Crea y gestiona seeding en estado de borrador antes de aplicar
+- **Head-to-Head**: Visualiza el historial de enfrentamientos entre jugadores
+- **Clasheos**: Gestión y seguimiento de encuentros (clasheos)
+- **Tema Personalizable**: Alterna entre temas claro y oscuro
+- **Sincronización con start.gg**: Actualiza el seeding directamente en el sitio
 
-## React Compiler
+## Requisitos Previos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js 18+
+- Rust (para compilar Tauri)
+- Cuenta en [start.gg](https://www.start.gg)
 
-## Expanding the ESLint configuration
+## Configuración Inicial
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 1. Obtener Token de Autenticación
+
+Para usar la aplicación, necesitas un token de la API de start.gg:
+
+1. Ve a [https://www.start.gg/admin/profile/developer](https://www.start.gg/admin/profile/developer)
+2. Inicia sesión con tu cuenta de start.gg
+3. En la sección "API Credentials", copia tu token personal de GraphQL
+4. Guarda este token de forma segura
+
+### 2. Instalación
+
+```bash
+# Instalar dependencias
+npm install
+
+# Iniciar en modo desarrollo
+npm run dev
+
+# O con Tauri (compilado como aplicación de escritorio)
+npm run tauri dev
+
+# Compilar para producción
+npm run build
+```
+
+## Cómo Usar
+
+1. **Inicia la aplicación** y verás la pantalla de autenticación
+2. **Ingresa tu token de start.gg** en el campo de entrada
+3. **Accede al Dashboard** donde verás tus torneos
+4. **Selecciona un torneo** para ver sus brackets y opciones:
+   - **Bracket**: Visualiza la estructura del torneo
+   - **Borradores**: Crea y gestiona siembra personalizada
+   - **Clasheos**: Gestiona encuentros y reglas
+5. **Arrastra y suelta jugadores** para reordenarlos en el seeding
+6. **Aplica cambios** para sincronizar con start.gg
+
+## Estructura del Proyecto
+
+```
+src/
+├── components/        # Componentes React reutilizables
+├── pages/            # Páginas principales (Auth, Dashboard, Bracket, etc)
+├── services/         # Servicios para tourneys, users, clash, draft
+├── store/            # Zustand stores para estado global
+├── core/             # API queries y filesystem
+├── utils/            # Utilidades (parsers, generadores, etc)
+├── types/            # Definiciones de tipos
+└── assets/           # Recursos estáticos
+src-tauri/           # Código backend Rust (escritorio)
+```
+
+## Nota de Seguridad
+
+⚠️ **Nunca compartas tu token de start.gg públicamente**. El token se almacena localmente en tu máquina y se utiliza únicamente para comunicarse con la API de start.gg.

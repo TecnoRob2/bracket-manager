@@ -23,6 +23,14 @@ export default function HeadToHeadModal({
   const startIndex = (currentPage - 1) * safePageSize;
   const visibleSets = sets?.slice(startIndex, startIndex + safePageSize) || [];
   const escapeRegExp = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  
+  // Función para limpiar el nombre del seed
+  const cleanSeedName = (fullName) => {
+    if (!fullName) return fullName;
+    const match = String(fullName).match(/^(\d+)\s*\|\s*(.+)$/);
+    return match ? match[2] : fullName;
+  };
+
   const getScoreOnly = (set) => {
     if (!set.marcador) return 'Sin marcador';
 
@@ -89,7 +97,7 @@ export default function HeadToHeadModal({
           </div>
         </div>
         <p className="h2h-subtitle">
-          {players?.teamA || '---'} vs {players?.teamB || '---'}
+          {cleanSeedName(players?.teamA) || '---'} vs {cleanSeedName(players?.teamB) || '---'}
         </p>
 
         {activeClash && (

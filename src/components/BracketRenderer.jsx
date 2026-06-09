@@ -54,6 +54,21 @@ const SeedTeam = styled.div`
   justify-content: space-between;
   align-items: center;
   border-radius: 0.2em;
+  gap: 8px;
+`;
+
+const SeedNumber = styled.span`
+  font-weight: 700;
+  color: var(--bracket-seed-number, #888);
+  font-size: 0.85em;
+  min-width: 24px;
+  text-align: center;
+`;
+
+const SeedName = styled.span`
+  flex: 1;
+  text-align: left;
+  word-break: break-word;
 `;
 
 const SeedTime = styled.div`
@@ -175,15 +190,38 @@ const Seed = styled.div`
 
 const renderTitle = (title) => <RoundTitle>{title}</RoundTitle>;
 
+// Función para separar seed number del nombre
+const parseSeedName = (fullName) => {
+  if (!fullName) return { number: null, name: fullName };
+  
+  const match = String(fullName).match(/^(\d+)\s*\|\s*(.+)$/);
+  if (match) {
+    return { number: match[1], name: match[2] };
+  }
+  return { number: null, name: fullName };
+};
+
 const renderSeed = ({ seed, breakpoint, isMiddleOfTwoSided }) => {
   const Wrapper = isMiddleOfTwoSided ? SingleLineSeed : Seed;
+  
+  const team0 = seed?.teams?.[0]?.name || '-----------';
+  const team1 = seed?.teams?.[1]?.name || '-----------';
+  
+  const parsed0 = parseSeedName(team0);
+  const parsed1 = parseSeedName(team1);
 
   return (
     <Wrapper mobileBreakpoint={breakpoint}>
       <SeedItem>
         <div>
-          <SeedTeam>{seed?.teams?.[0]?.name || '-----------'}</SeedTeam>
-          <SeedTeam>{seed?.teams?.[1]?.name || '-----------'}</SeedTeam>
+          <SeedTeam>
+            {parsed0.number && <SeedNumber>{parsed0.number}</SeedNumber>}
+            <SeedName>{parsed0.name}</SeedName>
+          </SeedTeam>
+          <SeedTeam>
+            {parsed1.number && <SeedNumber>{parsed1.number}</SeedNumber>}
+            <SeedName>{parsed1.name}</SeedName>
+          </SeedTeam>
         </div>
       </SeedItem>
       <SeedTime mobileBreakpoint={breakpoint}>{seed?.date}</SeedTime>
