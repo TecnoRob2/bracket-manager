@@ -1,5 +1,5 @@
-import React, { Fragment } from 'react';
-import styled from 'styled-components';
+import { Fragment } from "react";
+import styled from "styled-components";
 
 const Bracket = styled.div`
   display: flex;
@@ -35,14 +35,22 @@ const SeedsList = styled.div`
   list-style: none;
 `;
 
+import { clashService } from "../services/clashService";
 const SeedItem = styled.div`
   color: var(--bracket-seed-text, #fff) !important;
   width: 100%;
-  background-color: ${(props) => props.$hasClash ? 'rgba(220, 38, 38, 0.4) !important' : 'var(--bracket-seed-bg, #1a1d2e)'};
+  background-color: ${(props) =>
+    props.$hasClash
+      ? "rgba(220, 38, 38, 0.4) !important"
+      : "var(--bracket-seed-bg, #1a1d2e)"};
   padding: 0;
   border-radius: 0.2em;
-  box-shadow: ${(props) => props.$hasClash ? '0 0 12px rgba(239, 68, 68, 0.6) !important' : '0 2px 4px -2px var(--bracket-seed-shadow, #111630)'};
-  border: ${(props) => props.$hasClash ? '1px solid #ef4444 !important' : '1px solid transparent'};
+  box-shadow: ${(props) =>
+    props.$hasClash
+      ? "0 0 12px rgba(239, 68, 68, 0.6) !important"
+      : "0 2px 4px -2px var(--bracket-seed-shadow, #111630)"};
+  border: ${(props) =>
+    props.$hasClash ? "1px solid #ef4444 !important" : "1px solid transparent"};
   text-align: center;
   position: relative;
   transition: all 0.2s ease;
@@ -101,13 +109,13 @@ const SingleLineSeed = styled.div`
       position: absolute;
       height: 50%;
       width: 3em;
-      [dir='rtl'] & {
+      [dir="rtl"] & {
         left: -1.5em;
       }
-      [dir='twoSided'] & {
+      [dir="twoSided"] & {
         left: -1.5em;
       }
-      [dir='ltr'] & {
+      [dir="ltr"] & {
         right: -1.5em;
       }
     }
@@ -142,24 +150,24 @@ const Seed = styled.div`
       position: absolute;
       height: 50%;
       width: 1.5em;
-      [dir='rtl'] & {
+      [dir="rtl"] & {
         left: 0px;
       }
-      [dir='ltr'] & {
+      [dir="ltr"] & {
         right: 0px;
       }
     }
 
     &:nth-child(even)::before {
-      content: '';
+      content: "";
       border-top: 1px solid var(--bracket-line, #707070);
       position: absolute;
       top: -0.5px;
       width: 1.5em;
-      [dir='rtl'] & {
+      [dir="rtl"] & {
         left: -1.5em;
       }
-      [dir='ltr'] & {
+      [dir="ltr"] & {
         right: -1.5em;
       }
     }
@@ -167,33 +175,32 @@ const Seed = styled.div`
     &:nth-child(even)::after {
       border-bottom: 1px solid var(--bracket-line, #707070);
       top: -0.5px;
-      [dir='rtl'] & {
+      [dir="rtl"] & {
         border-left: 1px solid var(--bracket-line, #707070);
       }
-      [dir='ltr'] & {
+      [dir="ltr"] & {
         border-right: 1px solid var(--bracket-line, #707070);
       }
     }
     &:nth-child(odd):not(:last-child)::after {
       border-top: 1px solid var(--bracket-line, #707070);
       top: calc(50% - 0.5px);
-      [dir='rtl'] & {
+      [dir="rtl"] & {
         border-left: 1px solid var(--bracket-line, #707070);
       }
-      [dir='ltr'] & {
+      [dir="ltr"] & {
         border-right: 1px solid var(--bracket-line, #707070);
       }
     }
   }
 `;
 
-
 const renderTitle = (title) => <RoundTitle>{title}</RoundTitle>;
 
 // Función para separar seed number del nombre
 const parseSeedName = (fullName) => {
   if (!fullName) return { number: null, name: fullName };
-  
+
   const match = String(fullName).match(/^(\d+)\s*\|\s*(.+)$/);
   if (match) {
     return { number: match[1], name: match[2] };
@@ -201,18 +208,31 @@ const parseSeedName = (fullName) => {
   return { number: null, name: fullName };
 };
 
-const renderSeed = ({ seed, breakpoint, isMiddleOfTwoSided }) => {
+const renderSeed = ({ seed, breakpoint, isMiddleOfTwoSided, p1_id, p2_id }) => {
   const Wrapper = isMiddleOfTwoSided ? SingleLineSeed : Seed;
-  
-  const team0 = seed?.teams?.[0]?.name || '-----------';
-  const team1 = seed?.teams?.[1]?.name || '-----------';
-  
+
+  const team0 = seed?.teams?.[0]?.name || "-----------";
+  const team1 = seed?.teams?.[1]?.name || "-----------";
+
   const parsed0 = parseSeedName(team0);
   const parsed1 = parseSeedName(team1);
 
   return (
     <Wrapper mobileBreakpoint={breakpoint}>
-      <SeedItem>
+      <SeedItem
+        $hasClash={(() => {
+          const hasClash =
+            p1_id && p2_id && clashService.checkClasheo(p1_id, p2_id);
+          console.log("Clash check →", {
+            seedIdA: seed?.teams?.[0]?.seedId,
+            seedIdB: seed?.teams?.[1]?.seedId,
+            p1_id,
+            p2_id,
+            hasClash,
+          });
+          return hasClash;
+        })()}
+      >
         <div>
           <SeedTeam>
             {parsed0.number && <SeedNumber>{parsed0.number}</SeedNumber>}
@@ -239,7 +259,13 @@ const SingleElimination = ({
   renderSeedComponent = renderSeed,
   roundTitleComponent = renderTitle,
 }) => {
-  const getFragment = (seed, roundIdx, idx, roundsValue, isMiddleOfTwoSided) => (
+  const getFragment = (
+    seed,
+    roundIdx,
+    idx,
+    roundsValue,
+    isMiddleOfTwoSided,
+  ) => (
     <Fragment key={seed.id}>
       {renderSeedComponent({
         seed,
@@ -252,11 +278,17 @@ const SingleElimination = ({
     </Fragment>
   );
 
-const data = rounds.map((round, roundIdx) => (
-    <Round key={round.title} className={roundClassName} mobileBreakpoint={mobileBreakpoint}>
+  const data = rounds.map((round, roundIdx) => (
+    <Round
+      key={round.title}
+      className={roundClassName}
+      mobileBreakpoint={mobileBreakpoint}
+    >
       {round.title && roundTitleComponent(round.title, roundIdx)}
       <SeedsList>
-        {round.seeds.map((seed, idx) => getFragment(seed, roundIdx, idx, rounds, false))}
+        {round.seeds.map((seed, idx) =>
+          getFragment(seed, roundIdx, idx, rounds, false),
+        )}
       </SeedsList>
     </Round>
   ));
@@ -268,26 +300,50 @@ const data = rounds.map((round, roundIdx) => (
     roundsValue,
     dir,
   ) =>
-    roundsValue.slice(roundsStartIndex, roundsEndIndex).map((round, roundIdx) => (
-      <Round key={round.title} className={roundClassName} mobileBreakpoint={mobileBreakpoint}>
-        {round.title && roundTitleComponent(round.title, roundIdx)}
-        <SeedsList dir={dir}>
-          {(renderFirstHalfOfRoundsSeeds
-            ? round.seeds.slice(0, round.seeds.length / 2)
-            : round.seeds.slice(round.seeds.length / 2, round.seeds.length)
-          ).map((seed, idx) =>
-            getFragment(seed, roundIdx, idx, roundsValue, roundIdx < roundsEndIndex - 2),
-          )}
-        </SeedsList>
-      </Round>
-    ));
+    roundsValue
+      .slice(roundsStartIndex, roundsEndIndex)
+      .map((round, roundIdx) => (
+        <Round
+          key={round.title}
+          className={roundClassName}
+          mobileBreakpoint={mobileBreakpoint}
+        >
+          {round.title && roundTitleComponent(round.title, roundIdx)}
+          <SeedsList dir={dir}>
+            {(renderFirstHalfOfRoundsSeeds
+              ? round.seeds.slice(0, round.seeds.length / 2)
+              : round.seeds.slice(round.seeds.length / 2, round.seeds.length)
+            ).map((seed, idx) =>
+              getFragment(
+                seed,
+                roundIdx,
+                idx,
+                roundsValue,
+                roundIdx < roundsEndIndex - 2,
+              ),
+            )}
+          </SeedsList>
+        </Round>
+      ));
 
   if (twoSided) {
     return (
       <Bracket className={bracketClassName} mobileBreakpoint={mobileBreakpoint}>
-        {getRenderedRounds(0, rounds.length - 1, true, rounds, 'ltr')}
-        {getRenderedRounds(rounds.length - 1, rounds.length, false, rounds, 'twoSided')}
-        {getRenderedRounds(1, rounds.length, false, [...rounds].reverse(), 'rtl')}
+        {getRenderedRounds(0, rounds.length - 1, true, rounds, "ltr")}
+        {getRenderedRounds(
+          rounds.length - 1,
+          rounds.length,
+          false,
+          rounds,
+          "twoSided",
+        )}
+        {getRenderedRounds(
+          1,
+          rounds.length,
+          false,
+          [...rounds].reverse(),
+          "rtl",
+        )}
       </Bracket>
     );
   }
@@ -295,7 +351,7 @@ const data = rounds.map((round, roundIdx) => (
   return (
     <Bracket
       className={bracketClassName}
-      dir={rtl ? 'rtl' : 'ltr'}
+      dir={rtl ? "rtl" : "ltr"}
       mobileBreakpoint={mobileBreakpoint}
     >
       {data}
@@ -303,4 +359,11 @@ const data = rounds.map((round, roundIdx) => (
   );
 };
 
-export { SingleElimination as Bracket, Seed, SeedItem, SeedTeam, SeedTime, SingleLineSeed };
+export {
+  SingleElimination as Bracket,
+  Seed,
+  SeedItem,
+  SeedTeam,
+  SeedTime,
+  SingleLineSeed,
+};

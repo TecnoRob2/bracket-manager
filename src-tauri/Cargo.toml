@@ -1,8 +1,8 @@
 [package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+name = "bracket-manager"
+version = "1.1.0"
+description = "Bracket Manager"
+authors = ["symbiontz", "tecnorob2"]
 license = ""
 repository = ""
 edition = "2021"

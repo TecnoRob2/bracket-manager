@@ -1,63 +1,62 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { userStore } from '../store/userStore';
-import './AuthPage.css';
-import { userService } from '../services/userService';
-import { parseUser, parseTournaments } from '../utils/parser';
-import { handleError } from '../utils/handleError';
-import { FaMoon, FaSun } from 'react-icons/fa';
-import { open } from '@tauri-apps/plugin-shell';
-import Notification from '../components/Notification';
-import { TfiControlSkipBackward } from 'react-icons/tfi';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { themeStore } from "../store/themeStore";
+import { userService } from "../services/userService";
+import { FaMoon, FaSun } from "react-icons/fa";
+import { open } from "@tauri-apps/plugin-shell";
+import Notification from "../components/Notification";
+
+import "./AuthPage.css";
+
+const TOKEN_INFO_URL = "https://www.start.gg/admin/profile/developer";
 
 export default function AuthPage() {
-  const [inputToken, setInputToken] = useState('');
+  const [inputToken, setInputToken] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [notificacion, setNotificacion] = useState({
-    open: false,
-    message: '',
-    type: 'error',
-  });
-  const { setApiToken, setUser, tema, toggleTema } = userStore((state) => state);
+  const [notificacion, setNotificacion] = useState(null);
+
   const navigate = useNavigate();
-  const tokenUrl = 'https://www.start.gg/admin/profile/developer';
+
+  const theme = themeStore((s) => s.theme);
+  const toggleTheme = themeStore((s) => s.toggleTheme);
 
   const handleOpenToken = async (event) => {
     event.preventDefault();
     try {
-      await open(tokenUrl);
+      await open(TOKEN_INFO_URL);
     } catch {
-      window.open(tokenUrl, '_blank', 'noopener,noreferrer');
+      window.open(TOKEN_INFO_URL, "_blank", "noopener,noreferrer");
     }
   };
 
-
   const validarToken = async (e) => {
     e.preventDefault();
+
     if (!inputToken) {
-      setNotificacion({ open: true, message: 'Por favor ingresa tu token para continuar.', type: 'error' });
+      setNotificacion({
+        message: "Por favor ingresa tu token para continuar.",
+        type: "error",
+      });
       return;
     }
 
-    setCargando(true);
+    try {
+      setCargando(true);
 
-    userService.getUser(inputToken).then((data) => {
-      // console.log('Respuesta de getUser:', data);
+      await userService.getUser(inputToken);
 
-      if (data.error) {
-        setNotificacion({ open: true, message: data.error, type: 'error' });
-        setCargando(false);
-        return;
-      }
+      userService.setAuthToken(inputToken);
+
+      navigate("/dashboard");
+    } catch (error) {
+      setNotificacion({
+        message: error.message,
+        type: "error",
+      });
+    } finally {
       setCargando(false);
-      setApiToken(inputToken);
-      navigate('/dashboard');
-    }).catch((error) => {
-      console.error('Error inesperado al validar token:', error);
-      const errorMsg = error.message;
-      setNotificacion({ open: true, message: errorMsg, type: 'error' });
-      setCargando(false);
-    });
+    }
   };
 
   return (
@@ -65,37 +64,45 @@ export default function AuthPage() {
       <div className="login-card">
         <div className="login-card-header">
           <h2>Bienvenido</h2>
-          <button className="btn-tema" onClick={toggleTema} title="Cambiar tema">
-            {tema === 'dark' ? <FaSun size={18} /> : <FaMoon size={18} />}
+          <button
+            className="btn-tema"
+            onClick={() => toggleTheme()}
+            title="Cambiar tema"
+          >
+            {theme === "dark" ? <FaSun size={18} /> : <FaMoon size={18} />}
           </button>
         </div>
         <p>Ingresa tu token de start.gg para ver y organizar tus torneos.</p>
-        
+
         <form onSubmit={validarToken} className="login-form">
-          <input 
-            type="password" 
+          <input
+            type="password"
             className="TokenSpace"
-            placeholder="Pegar token aquí..." 
+            placeholder="Pegar token aquí..."
             value={inputToken}
             onChange={(e) => setInputToken(e.target.value)}
             disabled={cargando}
           />
           <button type="submit" className="btn-confirmar" disabled={cargando}>
-            {cargando ? 'Cargando torneos...' : 'Confirmar'}
+            {cargando ? "Cargando torneos..." : "Confirmar"}
           </button>
         </form>
         <p className="login-help">
-          Para obtener tu token pulsa{' '}
-          <a className="login-link" href={tokenUrl} onClick={handleOpenToken}>
+          Para obtener tu token pulsa{" "}
+          <a
+            className="login-link"
+            href={TOKEN_INFO_URL}
+            onClick={handleOpenToken}
+          >
             aqui
           </a>
         </p>
         <Notification
-          open={notificacion.open}
-          message={notificacion.message}
-          type={notificacion.type}
+          open={notificacion !== null}
+          message={notificacion?.message}
+          type={notificacion?.type}
           duration={2500}
-          onClose={() => setNotificacion((prev) => ({ ...prev, open: false }))}
+          onClose={() => setNotificacion(null)}
         />
       </div>
     </div>
